@@ -248,6 +248,206 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
     }
+
+    /* Nameless Room — monochrome polish */
+    :root {
+      color-scheme: dark;
+      --bg: #080808;
+      --panel: rgba(17, 17, 17, .88);
+      --panel-solid: #141414;
+      --panel-soft: #202020;
+      --line: rgba(255, 255, 255, .105);
+      --text: #f5f5f5;
+      --muted: #929292;
+      --blue: #f1f1f1;
+      --blue-strong: #ffffff;
+      --green: #e7e7e7;
+      --red: #eeeeee;
+      --shadow: 0 28px 85px rgba(0, 0, 0, .58);
+    }
+    body {
+      background:
+        radial-gradient(ellipse at 12% 4%, rgba(255,255,255,.075), transparent 30%),
+        radial-gradient(ellipse at 88% 84%, rgba(255,255,255,.045), transparent 28%),
+        #080808;
+    }
+    .app-topbar { padding-bottom: 17px; }
+    .brand-mark {
+      color: #fff;
+      border-color: rgba(255,255,255,.18);
+      background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.025));
+      box-shadow: inset 0 1px rgba(255,255,255,.14), 0 0 28px rgba(255,255,255,.045);
+    }
+    .brand-subtitle { color: #777; letter-spacing: .16em; }
+    .profile-trigger {
+      border-color: rgba(255,255,255,.12);
+      background: rgba(20,20,20,.76);
+    }
+    .profile-trigger:hover { border-color: rgba(255,255,255,.32); background: #1b1b1b; }
+    .avatar {
+      border-color: rgba(255,255,255,.17);
+      color: #fff;
+      background: linear-gradient(145deg, #555, #202020);
+    }
+    .login-card {
+      border-color: rgba(255,255,255,.13);
+      background: linear-gradient(155deg, rgba(22,22,22,.96), rgba(11,11,11,.94));
+      box-shadow: 0 30px 100px rgba(0,0,0,.55), 0 0 45px rgba(255,255,255,.025);
+    }
+    .login-card::before {
+      background: rgba(255,255,255,.07);
+      filter: blur(24px);
+    }
+    .eyebrow { color: #c9c9c9; }
+    .eyebrow-dot {
+      background: #fff;
+      box-shadow: 0 0 12px rgba(255,255,255,.72);
+    }
+    .login-card h1 { margin: 16px 0 27px; font-size: clamp(31px, 5vw, 39px); }
+    .field-label { color: #dedede; }
+    .field input, .modal-input {
+      border-color: rgba(255,255,255,.13);
+      color: #fafafa;
+      background: rgba(0,0,0,.42);
+    }
+    .field input::placeholder, textarea::placeholder { color: #676767; }
+    .field input:focus, .modal-input:focus, textarea:focus {
+      border-color: rgba(255,255,255,.62);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.055), 0 0 22px rgba(255,255,255,.035);
+    }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, .profile-trigger:focus-visible {
+      outline-color: #fff;
+    }
+    .btn-primary {
+      color: #090909;
+      background: linear-gradient(135deg, #fff, #d9d9d9);
+      box-shadow: 0 8px 25px rgba(255,255,255,.085), inset 0 1px rgba(255,255,255,.95);
+    }
+    .btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #fff, #ededed); }
+    .btn-soft {
+      border-color: rgba(255,255,255,.13);
+      background: rgba(255,255,255,.045);
+    }
+    .btn-soft:hover:not(:disabled) { border-color: rgba(255,255,255,.3); background: rgba(255,255,255,.085); }
+    .btn-danger {
+      color: #f3f3f3;
+      border-color: rgba(255,255,255,.19);
+      background: rgba(255,255,255,.065);
+    }
+    .btn-danger:hover:not(:disabled) { background: rgba(255,255,255,.13); }
+    .mic-button.is-muted {
+      color: #fff;
+      border-color: rgba(255,255,255,.42);
+      background: rgba(255,255,255,.13);
+      box-shadow: 0 0 18px rgba(255,255,255,.045);
+    }
+    .connection-pill { color: #bdbdbd; background: rgba(10,10,10,.72); }
+    .connection-pill::before { background: #e9e9e9; box-shadow: 0 0 8px rgba(255,255,255,.35); }
+    .connection-pill.is-waiting::before { background: #858585; box-shadow: 0 0 8px rgba(255,255,255,.15); }
+    .connection-pill.is-offline::before { background: #444; box-shadow: none; }
+    .room-id-code {
+      color: #f0f0f0;
+      background: rgba(255,255,255,.035);
+      cursor: pointer;
+      transition: border-color .18s, background .18s, box-shadow .18s;
+    }
+    .room-id-code:hover, .room-id-code:focus-visible {
+      border-color: rgba(255,255,255,.32);
+      background: rgba(255,255,255,.075);
+      box-shadow: 0 0 16px rgba(255,255,255,.035);
+      outline: none;
+    }
+    .panel {
+      border-color: rgba(255,255,255,.105);
+      background: linear-gradient(155deg, rgba(20,20,20,.94), rgba(12,12,12,.94));
+      box-shadow: 0 18px 55px rgba(0,0,0,.22), 0 0 28px rgba(255,255,255,.012);
+    }
+    .count-pill {
+      border-color: rgba(255,255,255,.15);
+      color: #f1f1f1;
+      background: rgba(255,255,255,.065);
+    }
+    .member-row { background: rgba(255,255,255,.025); }
+    .member-row.is-speaking {
+      border-color: rgba(255,255,255,.31);
+      background: linear-gradient(115deg, rgba(255,255,255,.085), rgba(255,255,255,.025));
+      box-shadow: inset 0 0 20px rgba(255,255,255,.018), 0 0 18px rgba(255,255,255,.025);
+    }
+    .member-role { color: #d3d3d3; }
+    .member-row.is-speaking .member-status { color: #f0f0f0; }
+    .member-row.is-speaking .status-dot { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,.58); }
+    .messages::-webkit-scrollbar-thumb { background: #414141; background-clip: padding-box; }
+    .empty-chat-icon {
+      border-color: rgba(255,255,255,.12);
+      color: #f0f0f0;
+      background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.015));
+      box-shadow: 0 0 30px rgba(255,255,255,.025);
+    }
+    .empty-chat strong { color: #cfcfcf; }
+    .message-bubble {
+      border-color: rgba(255,255,255,.09);
+      color: #ededed;
+      background: #1b1b1b;
+    }
+    .message-row.own .message-bubble {
+      border-color: rgba(255,255,255,.16);
+      background: linear-gradient(145deg, rgba(255,255,255,.15), rgba(255,255,255,.075));
+    }
+    .reply-quote { border-left-color: #d1d1d1; background: rgba(0,0,0,.24); color: #bcbcbc; }
+    .reply-quote strong, .reply-preview-copy strong { color: #f0f0f0; }
+    .reply-preview {
+      border-color: rgba(255,255,255,.14);
+      background: rgba(255,255,255,.045);
+    }
+    .reply-preview-copy span { color: #aaa; }
+    .icon-button { color: #c8c8c8; background: rgba(0,0,0,.35); }
+    .icon-button:hover { color: #fff; border-color: rgba(255,255,255,.32); }
+    .composer {
+      border-color: rgba(255,255,255,.13);
+      background: rgba(0,0,0,.42);
+    }
+    .composer:focus-within {
+      border-color: rgba(255,255,255,.4);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.04), 0 0 25px rgba(255,255,255,.025);
+    }
+    .modal-backdrop { background: rgba(0,0,0,.78); }
+    .modal-card {
+      border-color: rgba(255,255,255,.14);
+      background: linear-gradient(155deg, #191919, #0e0e0e);
+      box-shadow: 0 30px 100px rgba(0,0,0,.65), 0 0 40px rgba(255,255,255,.025);
+    }
+    .profile-preview { background: rgba(0,0,0,.28); }
+    .file-picker label { color: #e5e5e5; background: rgba(255,255,255,.045); }
+    .file-picker label:hover { border-color: rgba(255,255,255,.32); }
+    .text-button { color: #bcbcbc; }
+    .text-button:hover { color: #fff; }
+    .context-menu {
+      border-color: rgba(255,255,255,.14);
+      background: #1b1b1b;
+      box-shadow: 0 14px 42px rgba(0,0,0,.6), 0 0 25px rgba(255,255,255,.025);
+    }
+    .context-menu button { color: #ededed; }
+    .context-menu button:hover { background: rgba(255,255,255,.075); }
+    .context-menu svg { color: #d0d0d0; }
+    .toast {
+      border-color: rgba(255,255,255,.15);
+      color: #f2f2f2;
+      background: #1b1b1b;
+    }
+    .toast.error, .toast.success { border-color: rgba(255,255,255,.24); }
+    #chat-connection-pill { display: none; }
+    .login-bottom, .login-intro, .field-help, .members-tip, .chat-caption, .keyboard-hint, .room-disclaimer, .modal-note { display: none !important; }
+    @media (max-width: 760px) {
+      .login-wrap { min-height: calc(100dvh - 100px); }
+      .workspace { gap: 12px; }
+      .panel { border-radius: 17px; }
+      .chat-panel { min-height: 440px; }
+    }
+    @media (max-width: 420px) {
+      .login-card { padding: 24px 21px; }
+      .login-card h1 { margin-bottom: 23px; }
+    }
+
   </style>
 </head>
 <body>
@@ -256,11 +456,11 @@
       <div class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19 6v5c0 4.8-3 8-7 10-4-2-7-5.2-7-10V6l7-3Z"/><path d="M9.5 11.5v-1a2.5 2.5 0 0 1 5 0v1"/><rect x="8" y="11.5" width="8" height="5" rx="1.5"/></svg>
       </div>
-      <div><p class="brand-title">Nameless Room</p><p class="brand-subtitle">Private voice · room chat</p></div>
+      <div><p class="brand-title">Nameless Room</p><p class="brand-subtitle">VOICE · CHAT</p></div>
     </div>
     <button class="profile-trigger" id="profile-trigger" type="button" aria-label="Chỉnh sửa hồ sơ">
       <span class="avatar avatar-sm" id="top-avatar">N</span>
-      <span class="profile-trigger-copy"><span class="profile-trigger-name" id="top-profile-name">Noname</span><span class="profile-trigger-hint">Hồ sơ của bạn</span></span>
+      <span class="profile-trigger-copy"><span class="profile-trigger-name" id="top-profile-name">Noname</span></span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
     </button>
   </header>
@@ -268,36 +468,29 @@
   <main>
     <section id="login-screen" class="screen login-wrap">
       <div class="login-card">
-        <span class="eyebrow"><span class="eyebrow-dot"></span> Kết nối với mọi người</span>
-        <h1>Không gian trò chuyện<br>của riêng bạn.</h1>
-        <p class="login-intro">Nhập ID và mật khẩu phòng để tham gia. Bạn có thể nói chuyện bằng giọng nói và nhắn tin ngay trong cùng một giao diện.</p>
+        <span class="eyebrow"><span class="eyebrow-dot"></span> VOICE · CHAT</span>
+        <h1>Vào phòng.</h1>
         <form id="join-form">
           <label class="field" for="room-id">
-            <span class="field-label">ID phòng <small>Do bạn và bạn bè thống nhất</small></span>
-            <input id="room-id" name="room-id" type="text" placeholder="Ví dụ: nhom-ban-than" maxlength="64" autocomplete="off" required />
+            <span class="field-label">ID phòng</span>
+            <input id="room-id" name="room-id" type="text" placeholder="Nhập ID phòng" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" required />
           </label>
           <label class="field" for="room-pass">
             <span class="field-label">Mật khẩu phòng</span>
-            <input id="room-pass" name="room-pass" type="password" placeholder="Nhập mật khẩu phòng" maxlength="128" autocomplete="current-password" required />
+            <input id="room-pass" name="room-pass" type="password" placeholder="Nhập mật khẩu" maxlength="128" autocomplete="current-password" required />
           </label>
-          <p class="field-help">ID chưa có phòng đang hoạt động? Bạn sẽ tạo phòng mới. Người tạo phòng cần giữ trang web mở để mọi người tiếp tục kết nối.</p>
           <button class="btn btn-primary join-button" id="join-button" type="submit">
             <span>Vào phòng</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </button>
         </form>
-        <div class="login-bottom">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
-          <span>Đây là bản chạy trực tiếp trên trình duyệt. Tin nhắn được chuyển qua máy của chủ phòng; bản này chưa có mã hóa đầu-cuối (E2EE) cho tin nhắn.</span>
-        </div>
       </div>
     </section>
 
     <section id="room-screen" class="screen hidden" aria-label="Phòng thoại">
       <div class="room-header">
         <div class="room-heading">
-          <span class="eyebrow"><span class="eyebrow-dot"></span> Phòng thoại đang hoạt động</span>
           <h1 id="room-title">Phòng</h1>
-          <p class="room-subtitle"><span>ID phòng</span><code class="room-id-code" id="room-id-label"></code><span id="connection-pill" class="connection-pill is-waiting">Đang kết nối</span></p>
+          <p class="room-subtitle"><code class="room-id-code" id="room-id-label" role="button" tabindex="0" title="Sao chép ID phòng" aria-label="Sao chép ID phòng"></code><span id="connection-pill" class="connection-pill is-waiting">Đang kết nối</span></p>
         </div>
         <div class="room-actions">
           <button id="mic-toggle" class="btn btn-soft mic-button" type="button" disabled>
@@ -312,17 +505,16 @@
       <div class="workspace">
         <aside class="panel members-panel">
           <div class="panel-heading"><h2>Thành viên trong phòng</h2><span class="count-pill" id="member-count">0</span></div>
-          <ul id="user-list" class="member-list"><li class="members-empty">Đang tải danh sách thành viên…</li></ul>
-          <div class="members-tip"><strong>💡 Mẹo nhanh</strong>Nhấn vào ảnh đại diện ở góc trên để đổi tên hoặc ảnh. Trạng thái “Đang nói” được cập nhật khi phát hiện giọng nói.</div>
+          <ul id="user-list" class="member-list"><li class="members-empty">Đang chờ thành viên…</li></ul>
         </aside>
 
         <section class="panel chat-panel" aria-label="Tin nhắn phòng">
           <div class="chat-topline">
-            <div><h2 class="chat-title">Trò chuyện</h2><p class="chat-caption">Tin nhắn chỉ dành cho những người đã vào phòng</p></div>
+            <div><h2 class="chat-title">Tin nhắn</h2></div>
             <span class="connection-pill" id="chat-connection-pill">Đang chờ kết nối</span>
           </div>
           <div id="messages" class="messages" aria-live="polite" aria-label="Lịch sử tin nhắn">
-            <div class="empty-chat" id="empty-chat"><div class="empty-chat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l-2 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/><path d="M8 11h8m-8 3h5"/></svg></div><strong>Chưa có tin nhắn nào</strong><span>Gửi lời chào để bắt đầu cuộc trò chuyện.</span></div>
+            <div class="empty-chat" id="empty-chat"><div class="empty-chat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l-2 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/><path d="M8 11h8m-8 3h5"/></svg></div><strong>Chưa có tin nhắn</strong></div>
           </div>
           <div class="composer-area">
             <div id="reply-preview" class="reply-preview hidden">
@@ -330,24 +522,22 @@
               <button id="cancel-reply" class="icon-button" type="button" aria-label="Hủy trả lời"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
             </div>
             <form id="chat-form" class="composer">
-              <textarea id="message-input" rows="1" maxlength="2000" placeholder="Nhập tin nhắn… (Enter để gửi)" aria-label="Nội dung tin nhắn" disabled></textarea>
+              <textarea id="message-input" rows="1" maxlength="2000" placeholder="Nhắn tin…" aria-label="Nội dung tin nhắn" disabled></textarea>
               <button id="send-button" class="btn btn-primary send-button" type="submit" aria-label="Gửi tin nhắn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button>
             </form>
-            <p class="keyboard-hint">Enter để gửi · Shift + Enter để xuống dòng · Chuột phải vào tin nhắn để sao chép hoặc trả lời</p>
           </div>
         </section>
       </div>
-      <p class="room-disclaimer"><strong>Lưu ý:</strong> Âm thanh dùng kết nối WebRTC giữa các trình duyệt. Hãy chỉ chia sẻ ID và mật khẩu với người bạn tin tưởng; mật khẩu phòng không đồng nghĩa với mã hóa đầu-cuối.</p>
     </section>
   </main>
 
   <div id="profile-modal" class="modal-backdrop hidden" role="presentation">
     <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
-      <div class="modal-head"><div><h2 id="profile-modal-title">Hồ sơ của bạn</h2><p>Tên và ảnh đại diện sẽ được lưu trong trình duyệt này.</p></div><button id="close-profile-modal" class="icon-button" type="button" aria-label="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <div class="modal-head"><div><h2 id="profile-modal-title">Hồ sơ</h2></div><button id="close-profile-modal" class="icon-button" type="button" aria-label="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
       <form id="profile-form">
-        <div class="profile-preview"><span id="profile-preview-avatar" class="avatar avatar-lg">N</span><div class="profile-preview-copy"><strong id="profile-preview-name">Noname</strong><span>Ảnh sẽ được thu nhỏ trước khi lưu để tiết kiệm dung lượng.</span></div></div>
-        <label class="field" for="profile-name"><span class="field-label">Tên hiển thị <small>Tối đa 24 ký tự</small></span><input class="modal-input" id="profile-name" type="text" maxlength="24" placeholder="Noname" autocomplete="nickname" /></label>
-        <div class="field"><span class="field-label">Ảnh đại diện</span><div class="file-picker"><input id="avatar-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" /><label for="avatar-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-5 5 5-5 5 5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>Chọn ảnh</label><button id="remove-avatar" class="btn btn-soft" type="button">Xóa ảnh</button></div><p class="modal-note">Ảnh chỉ lưu trong bộ nhớ cục bộ của trình duyệt; xóa dữ liệu trình duyệt có thể làm mất ảnh đã lưu.</p></div>
+        <div class="profile-preview"><span id="profile-preview-avatar" class="avatar avatar-lg">N</span><div class="profile-preview-copy"><strong id="profile-preview-name">Noname</strong></div></div>
+        <label class="field" for="profile-name"><span class="field-label">Tên hiển thị</span><input class="modal-input" id="profile-name" type="text" maxlength="24" placeholder="Noname" autocomplete="nickname" /></label>
+        <div class="field"><span class="field-label">Ảnh đại diện</span><div class="file-picker"><input id="avatar-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" /><label for="avatar-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-5 5 5-5 5 5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>Chọn ảnh</label><button id="remove-avatar" class="btn btn-soft" type="button">Xóa ảnh</button></div></div>
         <div class="modal-actions"><button id="cancel-profile-modal" class="btn btn-soft" type="button">Hủy</button><button class="btn btn-primary" type="submit">Lưu hồ sơ</button></div>
       </form>
     </section>
@@ -355,10 +545,10 @@
 
   <div id="name-gate-modal" class="modal-backdrop hidden" role="presentation">
     <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="name-gate-title">
-      <div class="modal-head"><div><h2 id="name-gate-title">Bạn muốn mọi người gọi là gì?</h2><p>Hãy đặt tên trước khi vào phòng, hoặc tiếp tục với tên mặc định.</p></div></div>
+      <div class="modal-head"><div><h2 id="name-gate-title">Đặt tên hiển thị</h2></div></div>
       <form id="name-gate-form">
         <label class="field" for="gate-name"><span class="field-label">Tên hiển thị</span><input class="modal-input" id="gate-name" type="text" maxlength="24" placeholder="Nhập tên của bạn" autocomplete="nickname" /></label>
-        <div class="gate-actions"><button class="btn btn-primary" type="submit">Lưu tên và vào phòng</button><button id="continue-noname" class="text-button" type="button">Tiếp tục với Noname</button></div>
+        <div class="gate-actions"><button class="btn btn-primary" type="submit">Lưu &amp; vào phòng</button><button id="continue-noname" class="text-button" type="button">Dùng Noname</button></div>
       </form>
     </section>
   </div>
@@ -494,6 +684,36 @@
       if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
       return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
     }
+
+    async function copyRoomId() {
+      const id = $('room-id-label').textContent.trim();
+      if (!id) return;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(id);
+        } else {
+          const helper = document.createElement('textarea');
+          helper.value = id;
+          helper.style.position = 'fixed';
+          helper.style.opacity = '0';
+          document.body.appendChild(helper);
+          helper.select();
+          const copied = document.execCommand('copy');
+          helper.remove();
+          if (!copied) throw new Error('Clipboard unavailable');
+        }
+        showToast('Đã sao chép ID phòng.', 'success');
+      } catch (_) {
+        showToast('Không thể sao chép ID phòng.', 'error');
+      }
+    }
+    $('room-id-label').addEventListener('click', copyRoomId);
+    $('room-id-label').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        copyRoomId();
+      }
+    });
 
     $('join-form').addEventListener('submit', async (event) => {
       event.preventDefault();
