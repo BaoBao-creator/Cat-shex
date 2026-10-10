@@ -252,7 +252,7 @@
                     let average = sum / dataArray.length;
                     
                     // Ngưỡng âm thanh kích hoạt trạng thái "Đang nói" (có thể tinh chỉnh số 15)
-                    let speakingNow = average > 15; 
+                    let speakingNow = average > 35; 
 
                     if (speakingNow !== isSpeaking) {
                         isSpeaking = speakingNow;
