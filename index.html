@@ -2,39 +2,192 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Serverless Voice Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Voice Room</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 320px;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { background: #2563eb; }
+        .hidden { display: none !important; }
+        ul { list-style: none; padding: 0; text-align: left; margin-top: 15px; }
+        li {
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            background: #0f172a;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        .speaking {
+            border: 1px solid #22c55e;
+            color: #22c55e;
+        }
+        .status { font-size: 12px; color: #94a3b8; }
+        .speaking .status { color: #22c55e; font-weight: bold; }
+    </style>
 </head>
 <body>
-    <!-- Nhúng thư viện PeerJS từ CDN -->
+
+    <!-- MÀN HÌNH ĐĂNG NHẬP -->
+    <div id="login-screen" class="card">
+        <h2>Phòng Thoại Bảo Mật</h2>
+        <input type="text" id="username" placeholder="Nhập tên của bạn..." autocomplete="off">
+        <input type="password" id="room-pass" placeholder="Mật khẩu phòng..." autocomplete="off">
+        <button onclick="joinRoom()">Vào Phòng</button>
+    </div>
+
+    <!-- MÀN HÌNH TRONG PHÒNG -->
+    <div id="room-screen" class="card hidden">
+        <h3 id="room-title">Đang kết nối...</h3>
+        <p class="status">Thành viên trong phòng:</p>
+        <ul id="user-list">
+            <!-- Danh sách người dùng sẽ hiển thị ở đây -->
+        </ul>
+        <button onclick="location.reload()" style="background: #ef4444; margin-top: 20px;">Rời Phòng</button>
+    </div>
+
+    <!-- Nhúng PeerJS từ CDN -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script>
-        // Tên phòng chung độc nhất của bạn (các máy khác phải dùng chung tên này)
-        const ROOM_ID = 'phong-voice-bi-mat-xyz-123';
-        const HOST_ID = ROOM_ID + '-host';
+        let localStream, peer;
+        let myUsername = '';
+        const peers = {};
+        const usersData = {}; // Lưu trạng thái thành viên
 
-        // Tự động xin quyền Microphone ngay khi mở trang
-        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-            .then(stream => {
-                // Thử đăng ký làm Host của phòng trước
-                const peer = new Peer(HOST_ID);
+        async function joinRoom() {
+            myUsername = document.getElementById('username').value.trim();
+            const roomPass = document.getElementById('room-pass').value.trim();
 
-                peer.on('open', id => {
-                    console.log('Bạn là Host của phòng.');
-                    setupHost(peer, stream);
+            if (!myUsername || !roomPass) {
+                alert('Vui lòng nhập đầy đủ tên và mật khẩu phòng!');
+                return;
+            }
+
+            // 1. Xin quyền Micro ngay khi bấm nút (thỏa mãn yêu cầu tương tác trình duyệt)
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            } catch (err) {
+                alert('Không thể truy cập Microphone. Vui lòng cấp quyền!');
+                return;
+            }
+
+            // Chuyển giao diện
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('room-screen').classList.remove('hidden');
+            document.getElementById('room-title').innerText = `Phòng: ${roomPass}`;
+
+            // Thêm bản thân vào danh sách hiển thị
+            addUserToList('self', myUsername, true);
+            monitorAudioActivity(localStream, 'self');
+
+            // Tạo ID định danh phòng từ mật khẩu
+            const HOST_ID = 'secure-voice-room-' + btoa(roomPass).replace(/=/g, '');
+
+            peer = new Peer();
+
+            peer.on('open', id => {
+                // Thử kết nối với tư cách là Client gọi tới Host ID của phòng
+                connectToHost(HOST_ID);
+            });
+
+            peer.on('error', err => {
+                console.log('Lỗi peer:', err);
+            });
+        }
+
+        function connectToHost(hostId) {
+            // Kiểm tra xem mình có phải là Host đầu tiên hay không bằng cách gọi tới chính HOST_ID
+            // Nếu Host chưa tồn tại, ta sẽ tự chiếm ID đó làm Host.
+            const hostPeer = new Peer(hostId);
+
+            hostPeer.on('open', () => {
+                console.log('Bạn là chủ phòng (Host).');
+                // Host lắng nghe kết nối đến
+                hostPeer.on('call', call => {
+                    const metadata = call.metadata || {};
+                    const remoteUser = metadata.username || 'Khách ẩn danh';
+                    const remotePeerId = call.peer;
+
+                    call.answer(localStream);
+                    setupCallEvents(call, remotePeerId, remoteUser);
                 });
+            });
 
-                // Nếu ID Host đã có người chiếm (đã có máy khác mở trước), ta sẽ tự động vào làm Client
-                peer.on('error', err => {
-                    if (err.type === 'unavailable-id') {
-                        console.log('Phòng đã có Host, đang kết nối vào...');
-                        const clientPeer = new Peer();
-                        clientPeer.on('open', () => {
-                            setupClient(clientPeer, stream, HOST_ID);
-                        });
-                    }
-                });
-            })
-            .catch(err => console.error('Lỗi quyền Microphone:', err));
+            hostPeer.on('error', err => {
+                if (err.type === 'unavailable-id') {
+                    // Phòng đã có Host, ta tham gia với tư cách Client thông thường
+                    console.log('Phòng đã tồn tại, đang vào...');
+                    joinAsClient(hostId);
+                }
+            });
+        }
+
+        function joinAsClient(hostId) {
+            // Gọi lên Host để xin kết nối và gửi kèm tên của mình qua metadata
+            const call = peer.call(hostId, localStream, {
+                metadata: { username: myUsername }
+            });
+            setupCallEvents(call, hostId, 'Chủ phòng');
+
+            // Lắng nghe các cuộc gọi ngược lại hoặc kết nối khác
+            peer.on('call', call => {
+                const metadata = call.metadata || {};
+                const remoteUser = metadata.username || 'Thành viên';
+                call.answer(localStream);
+                setupCallEvents(call, call.peer, remoteUser);
+            });
+        }
+
+        function setupCallEvents(call, peerId, username) {
+            call.on('stream', remoteStream => {
+                playAudioStream(remoteStream);
+                addUserToList(peerId, username, false);
+                monitorAudioActivity(remoteStream, peerId);
+            });
+
+            call.on('close', () => {
+                removeUserFromList(peerId);
+            });
+        }
 
         function playAudioStream(stream) {
             const audio = document.createElement('audio');
@@ -44,22 +197,71 @@
             document.body.appendChild(audio);
         }
 
-        function setupHost(peer, stream) {
-            // Host lắng nghe kết nối từ các máy khác gọi vào
-            peer.on('call', call => {
-                call.answer(stream); // Gửi âm thanh của mình lại cho họ
-                call.on('stream', remoteStream => {
-                    playAudioStream(remoteStream); // Phát âm thanh của họ
-                });
-            });
+        // Quản lý hiển thị danh sách người dùng
+        function addUserToList(id, name, isSelf) {
+            usersData[id] = { name: name, isSpeaking: false };
+            renderUserList();
         }
 
-        function setupClient(peer, stream, hostId) {
-            // Client gọi trực tiếp tới Host để thiết lập truyền âm thanh 2 chiều
-            const call = peer.call(hostId, stream);
-            call.on('stream', remoteStream => {
-                playAudioStream(remoteStream); // Phát âm thanh nhận được từ phòng
-            });
+        function removeUserFromList(id) {
+            delete usersData[id];
+            renderUserList();
+        }
+
+        function updateSpeakingStatus(id, isSpeaking) {
+            if (usersData[id]) {
+                usersData[id].isSpeaking = isSpeaking;
+                renderUserList();
+            }
+        }
+
+        function renderUserList() {
+            const list = document.getElementById('user-list');
+            list.innerHTML = '';
+            for (const id in usersData) {
+                const user = usersData[id];
+                const li = document.createElement('li');
+                if (user.isSpeaking) li.classList.add('speaking');
+                
+                li.innerHTML = `
+                    <span>👤 ${user.name} ${id === 'self' ? '(Bạn)' : ''}</span>
+                    <span class="status">${user.isSpeaking ? '🔊 Đang nói...' : 'Im lặng'}</span>
+                `;
+                list.appendChild(li);
+            }
+        }
+
+        // Thuật toán dùng Web Audio API để nhận diện âm thanh phát ra (Ai đang nói)
+        function monitorAudioActivity(stream, id) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioCtx.createMediaStreamSource(stream);
+                const analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 512;
+                source.connect(analyser);
+
+                const dataArray = new Uint8Array(analyser.frequencyBinCount);
+                let isSpeaking = false;
+
+                setInterval(() => {
+                    analyser.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) {
+                        sum += dataArray[i];
+                    }
+                    let average = sum / dataArray.length;
+                    
+                    // Ngưỡng âm thanh kích hoạt trạng thái "Đang nói" (có thể tinh chỉnh số 15)
+                    let speakingNow = average > 15; 
+
+                    if (speakingNow !== isSpeaking) {
+                        isSpeaking = speakingNow;
+                        updateSpeakingStatus(id, isSpeaking);
+                    }
+                }, 100);
+            } catch (e) {
+                console.error("Lỗi phân tích âm thanh:", e);
+            }
         }
     </script>
 </body>
