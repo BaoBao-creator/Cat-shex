@@ -1,268 +1,1297 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Voice Room</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #0f172a;
-            color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .card {
-            background: #1e293b;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            width: 320px;
-            text-align: center;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: white;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 10px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        button:hover { background: #2563eb; }
-        .hidden { display: none !important; }
-        ul { list-style: none; padding: 0; text-align: left; margin-top: 15px; }
-        li {
-            padding: 8px 12px;
-            margin-bottom: 6px;
-            background: #0f172a;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-        }
-        .speaking {
-            border: 1px solid #22c55e;
-            color: #22c55e;
-        }
-        .status { font-size: 12px; color: #94a3b8; }
-        .speaking .status { color: #22c55e; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>Nameless Room</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080d19;
+      --panel: rgba(18, 27, 48, .88);
+      --panel-solid: #111b30;
+      --panel-soft: #17233b;
+      --line: rgba(148, 163, 184, .16);
+      --text: #eef4ff;
+      --muted: #8d9bb5;
+      --blue: #7c9cff;
+      --blue-strong: #547cff;
+      --green: #42d6a4;
+      --red: #ff6e83;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .32);
+    }
+    * { box-sizing: border-box; }
+    html { min-width: 320px; min-height: 100%; background: var(--bg); }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(77, 104, 210, .18), transparent 34%),
+        radial-gradient(ellipse at 90% 85%, rgba(35, 174, 157, .10), transparent 30%),
+        var(--bg);
+    }
+    button, input, textarea { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, .profile-trigger:focus-visible {
+      outline: 2px solid var(--blue); outline-offset: 3px;
+    }
+    .hidden { display: none !important; }
+    .app-topbar {
+      display: flex; align-items: center; justify-content: space-between; gap: 18px;
+      width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 24px 0 14px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 auto;
+      border: 1px solid rgba(138, 164, 255, .34); border-radius: 14px;
+      color: #dce6ff; background: linear-gradient(145deg, rgba(107, 137, 255, .30), rgba(44, 65, 120, .22));
+      box-shadow: inset 0 1px rgba(255,255,255,.10), 0 8px 22px rgba(42, 68, 143, .18);
+    }
+    .brand-mark svg { width: 22px; height: 22px; }
+    .brand-title { margin: 0; font-size: 15px; font-weight: 750; letter-spacing: -.02em; }
+    .brand-subtitle { margin: 3px 0 0; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    .profile-trigger {
+      display: flex; align-items: center; gap: 10px; max-width: 210px; padding: 7px 12px 7px 7px;
+      border: 1px solid var(--line); border-radius: 999px; background: rgba(20, 30, 51, .78);
+      color: var(--text); cursor: pointer; transition: border-color .18s, background .18s, transform .18s;
+    }
+    .profile-trigger:hover { border-color: rgba(124, 156, 255, .55); background: rgba(28, 42, 70, .95); transform: translateY(-1px); }
+    .profile-trigger-copy { min-width: 0; text-align: left; }
+    .profile-trigger-name { display: block; max-width: 135px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 700; }
+    .profile-trigger-hint { display: block; margin-top: 1px; color: var(--muted); font-size: 10px; }
+    .avatar {
+      display: grid; place-items: center; flex: 0 0 auto; overflow: hidden;
+      border: 1px solid rgba(157, 177, 232, .24); border-radius: 50%; color: #dce6ff;
+      background: linear-gradient(145deg, #536aa4, #293857); font-weight: 750; user-select: none;
+    }
+    .avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .avatar-sm { width: 34px; height: 34px; font-size: 12px; }
+    .avatar-md { width: 42px; height: 42px; font-size: 14px; }
+    .avatar-lg { width: 66px; height: 66px; font-size: 22px; }
+    main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 18px 0 34px; }
+    .screen { animation: rise-in .32s ease both; }
+    @keyframes rise-in { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    .login-wrap { display: grid; place-items: center; min-height: min(710px, calc(100vh - 120px)); }
+    .login-card {
+      width: min(100%, 460px); padding: clamp(25px, 5vw, 40px); position: relative; overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, .18); border-radius: 26px; background: var(--panel);
+      box-shadow: var(--shadow); backdrop-filter: blur(20px);
+    }
+    .login-card::before { content: ""; position: absolute; top: -100px; right: -75px; width: 220px; height: 220px; border-radius: 50%; background: rgba(82, 115, 255, .10); filter: blur(3px); pointer-events: none; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: #9db3ff; font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    .eyebrow-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px rgba(66, 214, 164, .72); }
+    h1, h2, h3, p { overflow-wrap: anywhere; }
+    .login-card h1 { position: relative; margin: 17px 0 10px; font-size: clamp(28px, 5vw, 37px); line-height: 1.12; letter-spacing: -.045em; }
+    .login-intro { position: relative; margin: 0 0 27px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+    .field { display: block; margin: 16px 0 0; }
+    .field-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; color: #d2dcf0; font-size: 12px; font-weight: 700; }
+    .field-label small { color: var(--muted); font-size: 10px; font-weight: 500; }
+    .input-wrap { position: relative; }
+    .field input, .modal-input {
+      width: 100%; min-height: 46px; padding: 12px 14px; border: 1px solid rgba(148, 163, 184, .20); border-radius: 12px;
+      color: var(--text); background: rgba(7, 13, 27, .64); outline: none; transition: border-color .18s, box-shadow .18s;
+    }
+    .field input::placeholder, textarea::placeholder { color: #66748f; }
+    .field input:focus, .modal-input:focus, textarea:focus { border-color: rgba(124, 156, 255, .8); box-shadow: 0 0 0 3px rgba(84, 124, 255, .12); }
+    .field-help { margin: 8px 0 0; color: #71819f; font-size: 11px; line-height: 1.5; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 42px; padding: 10px 15px;
+      border: 1px solid transparent; border-radius: 12px; color: var(--text); background: var(--panel-soft);
+      font-size: 12px; font-weight: 750; cursor: pointer; transition: transform .16s, background .16s, border-color .16s, opacity .16s;
+    }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn:active:not(:disabled) { transform: translateY(0); }
+    .btn:disabled { opacity: .55; cursor: wait; }
+    .btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
+    .btn-primary { color: #fff; background: linear-gradient(135deg, #6f8fff, #4e70f4); box-shadow: 0 8px 22px rgba(75, 108, 239, .23); }
+    .btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #85a0ff, #5d7dff); }
+    .btn-soft { border-color: var(--line); background: rgba(31, 44, 68, .72); }
+    .btn-soft:hover:not(:disabled) { border-color: rgba(124, 156, 255, .4); background: rgba(38, 54, 84, .92); }
+    .btn-danger { color: #ffc5cf; border-color: rgba(255, 110, 131, .25); background: rgba(145, 37, 58, .18); }
+    .btn-danger:hover:not(:disabled) { background: rgba(145, 37, 58, .32); }
+    .join-button { width: 100%; margin-top: 23px; min-height: 49px; border-radius: 13px; font-size: 13px; }
+    .login-bottom { display: flex; align-items: flex-start; gap: 10px; margin-top: 22px; padding-top: 17px; border-top: 1px solid var(--line); color: #7887a2; font-size: 11px; line-height: 1.6; }
+    .login-bottom svg { width: 16px; height: 16px; flex: 0 0 auto; margin-top: 1px; color: #91a8ff; }
+    .room-header { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin: 8px 0 20px; }
+    .room-heading { min-width: 0; }
+    .room-heading h1 { margin: 8px 0 6px; font-size: clamp(25px, 4vw, 34px); letter-spacing: -.04em; }
+    .room-subtitle { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; color: var(--muted); font-size: 12px; }
+    .room-id-code { max-width: 280px; padding: 4px 8px; overflow: hidden; border: 1px solid var(--line); border-radius: 7px; color: #c8d5f3; background: rgba(13, 21, 38, .82); text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+    .room-actions { display: flex; align-items: center; justify-content: flex-end; gap: 9px; flex-wrap: wrap; }
+    .mic-button.is-muted { color: #ffd0d6; border-color: rgba(255, 110, 131, .32); background: rgba(145, 37, 58, .24); }
+    .connection-pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 9px; border: 1px solid var(--line); border-radius: 999px; color: #a8b8d5; background: rgba(12, 20, 36, .66); font-size: 10px; font-weight: 650; }
+    .connection-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+    .connection-pill.is-waiting::before { background: #ffca73; box-shadow: 0 0 9px rgba(255, 202, 115, .45); }
+    .connection-pill.is-offline::before { background: var(--red); }
+    .workspace { display: grid; grid-template-columns: minmax(230px, 295px) minmax(0, 1fr); gap: 16px; min-height: 540px; }
+    .panel { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--panel); box-shadow: 0 16px 50px rgba(0,0,0,.12); backdrop-filter: blur(18px); }
+    .members-panel { display: flex; flex-direction: column; }
+    .panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 18px 15px; border-bottom: 1px solid var(--line); }
+    .panel-heading h2 { margin: 0; font-size: 13px; font-weight: 800; }
+    .count-pill { display: inline-grid; place-items: center; min-width: 24px; height: 23px; padding: 0 7px; border: 1px solid rgba(124, 156, 255, .22); border-radius: 999px; color: #b8c8ff; background: rgba(84, 124, 255, .11); font-size: 11px; font-weight: 800; }
+    .member-list { list-style: none; display: flex; flex-direction: column; gap: 7px; margin: 0; padding: 12px; }
+    .member-row { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid transparent; border-radius: 13px; background: rgba(10, 17, 31, .43); }
+    .member-row.is-speaking { border-color: rgba(66, 214, 164, .40); background: rgba(26, 114, 94, .11); }
+    .member-meta { flex: 1; min-width: 0; }
+    .member-name { display: flex; align-items: center; gap: 6px; min-width: 0; margin: 0; font-size: 12px; font-weight: 750; }
+    .member-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .member-role { color: #8da4ff; font-size: 9px; font-weight: 800; }
+    .member-status { display: flex; align-items: center; gap: 5px; margin: 5px 0 0; color: #73829d; font-size: 10px; }
+    .member-status .status-dot { width: 5px; height: 5px; border-radius: 50%; background: #58657b; }
+    .member-row.is-speaking .member-status { color: var(--green); }
+    .member-row.is-speaking .status-dot { background: var(--green); box-shadow: 0 0 8px rgba(66,214,164,.7); }
+    .members-empty { padding: 22px 15px; color: var(--muted); font-size: 12px; line-height: 1.6; text-align: center; }
+    .members-tip { margin: auto 12px 12px; padding: 12px; border: 1px solid rgba(124, 156, 255, .13); border-radius: 12px; color: #8190ac; background: rgba(84, 124, 255, .055); font-size: 10px; line-height: 1.6; }
+    .members-tip strong { display: block; margin-bottom: 4px; color: #b4c4ed; font-size: 11px; }
+    .chat-panel { display: flex; flex-direction: column; min-height: 540px; }
+    .chat-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 68px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+    .chat-title { margin: 0; font-size: 13px; font-weight: 800; }
+    .chat-caption { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
+    .messages { display: flex; flex: 1; flex-direction: column; align-items: stretch; gap: 14px; min-height: 300px; max-height: 510px; overflow-y: auto; padding: 20px; scroll-behavior: smooth; }
+    .messages::-webkit-scrollbar { width: 7px; }
+    .messages::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 99px; background: #30405d; background-clip: padding-box; }
+    .empty-chat { display: grid; flex: 1; place-content: center; justify-items: center; min-height: 240px; color: #73829e; text-align: center; }
+    .empty-chat-icon { display: grid; place-items: center; width: 46px; height: 46px; margin-bottom: 13px; border: 1px solid var(--line); border-radius: 15px; color: #8da6ff; background: rgba(84,124,255,.09); }
+    .empty-chat-icon svg { width: 22px; height: 22px; }
+    .empty-chat strong { color: #b6c3da; font-size: 12px; }
+    .empty-chat span { margin-top: 7px; font-size: 11px; }
+    .message-row { display: flex; align-items: flex-end; gap: 9px; max-width: 92%; align-self: flex-start; }
+    .message-row.own { align-self: flex-end; flex-direction: row-reverse; }
+    .message-row .avatar { width: 29px; height: 29px; margin-bottom: 2px; font-size: 10px; }
+    .message-stack { min-width: 0; max-width: 100%; }
+    .message-meta { display: flex; align-items: baseline; gap: 8px; margin: 0 0 5px 3px; color: #a7b4cc; font-size: 10px; }
+    .message-row.own .message-meta { justify-content: flex-end; margin-right: 3px; }
+    .message-time { color: #687893; font-size: 9px; }
+    .message-bubble { padding: 10px 12px; border: 1px solid rgba(148,163,184,.12); border-radius: 4px 14px 14px 14px; color: #e4ebf8; background: #1a2740; font-size: 12px; line-height: 1.58; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; }
+    .message-row.own .message-bubble { border-color: rgba(113, 144, 255, .26); border-radius: 14px 4px 14px 14px; background: linear-gradient(140deg, rgba(70, 97, 190, .43), rgba(45, 65, 118, .46)); }
+    .reply-quote { margin: 0 0 8px; padding: 7px 9px; border-left: 2px solid #8ea5ff; border-radius: 2px 8px 8px 2px; background: rgba(4, 9, 20, .25); color: #aab8d2; font-size: 10px; }
+    .reply-quote strong { display: block; margin-bottom: 3px; color: #c0ceff; font-size: 10px; }
+    .reply-quote span { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .composer-area { padding: 0 16px 13px; }
+    .reply-preview { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; padding: 9px 11px; border: 1px solid rgba(124,156,255,.2); border-radius: 11px; background: rgba(84,124,255,.075); }
+    .reply-preview-copy { flex: 1; min-width: 0; }
+    .reply-preview-copy strong { display: block; margin-bottom: 3px; color: #b8c7ff; font-size: 10px; }
+    .reply-preview-copy span { display: block; overflow: hidden; color: #9baaca; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+    .icon-button { display: grid; place-items: center; width: 30px; height: 30px; flex: 0 0 auto; padding: 0; border: 1px solid var(--line); border-radius: 9px; color: #a6b4ce; background: rgba(8, 14, 27, .5); cursor: pointer; }
+    .icon-button:hover { color: white; border-color: rgba(124,156,255,.38); }
+    .icon-button svg { width: 14px; height: 14px; }
+    .composer { display: flex; align-items: flex-end; gap: 9px; padding: 8px; border: 1px solid rgba(148,163,184,.2); border-radius: 15px; background: rgba(8, 14, 27, .66); transition: border-color .18s, box-shadow .18s; }
+    .composer:focus-within { border-color: rgba(124,156,255,.65); box-shadow: 0 0 0 3px rgba(84,124,255,.07); }
+    .composer textarea { display: block; width: 100%; min-height: 38px; max-height: 120px; resize: none; padding: 10px 9px; border: 0; outline: 0; color: var(--text); background: transparent; font-size: 12px; line-height: 1.5; }
+    .composer textarea:focus { box-shadow: none; }
+    .send-button { width: 39px; height: 39px; min-height: 39px; padding: 0; border-radius: 11px; }
+    .send-button svg { width: 17px; height: 17px; }
+    .keyboard-hint { margin: 8px 3px 0; color: #667590; font-size: 9px; }
+    .room-disclaimer { margin: 13px 3px 0; color: #697994; font-size: 10px; line-height: 1.6; }
+    .room-disclaimer strong { color: #98a8c4; }
+    .modal-backdrop { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(3, 7, 16, .72); backdrop-filter: blur(9px); animation: fade-in .18s ease both; }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    .modal-card { width: min(100%, 430px); max-height: min(90vh, 760px); overflow-y: auto; padding: 24px; border: 1px solid rgba(148,163,184,.22); border-radius: 21px; background: #111b30; box-shadow: var(--shadow); }
+    .modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 15px; margin-bottom: 20px; }
+    .modal-head h2 { margin: 0; font-size: 20px; letter-spacing: -.03em; }
+    .modal-head p { margin: 7px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .profile-preview { display: flex; align-items: center; gap: 13px; margin: 0 0 18px; padding: 13px; border: 1px solid var(--line); border-radius: 14px; background: rgba(6,12,24,.36); }
+    .profile-preview-copy strong { display: block; font-size: 12px; }
+    .profile-preview-copy span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .file-picker { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .file-picker input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+    .file-picker label { display: inline-flex; align-items: center; gap: 7px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px; background: rgba(8,14,27,.54); color: #cbd7ed; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .file-picker label:hover { border-color: rgba(124,156,255,.5); }
+    .file-picker label svg { width: 14px; height: 14px; }
+    .modal-note { margin: 10px 0 0; color: #71819e; font-size: 10px; line-height: 1.6; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 22px; }
+    .gate-actions { display: flex; flex-direction: column; gap: 11px; margin-top: 20px; }
+    .text-button { align-self: center; padding: 6px 9px; border: 0; color: #9cafd6; background: transparent; font-size: 11px; cursor: pointer; }
+    .text-button:hover { color: #d7e2ff; text-decoration: underline; }
+    .context-menu { position: fixed; z-index: 80; width: 176px; padding: 5px; border: 1px solid rgba(148,163,184,.24); border-radius: 12px; background: #17233a; box-shadow: 0 12px 35px rgba(0,0,0,.4); }
+    .context-menu button { display: flex; align-items: center; gap: 9px; width: 100%; padding: 10px 9px; border: 0; border-radius: 8px; color: #d9e3f5; background: transparent; text-align: left; font-size: 11px; cursor: pointer; }
+    .context-menu button:hover { background: rgba(124,156,255,.12); }
+    .context-menu svg { width: 14px; height: 14px; color: #9fb2ff; }
+    .toast-region { position: fixed; z-index: 100; right: 18px; bottom: 18px; display: flex; flex-direction: column; gap: 8px; width: min(360px, calc(100% - 36px)); pointer-events: none; }
+    .toast { padding: 12px 14px; border: 1px solid rgba(148,163,184,.22); border-radius: 13px; color: #e7eefb; background: #17243b; box-shadow: 0 12px 32px rgba(0,0,0,.3); font-size: 12px; line-height: 1.5; animation: rise-in .2s ease both; }
+    .toast.error { border-color: rgba(255,110,131,.36); }
+    .toast.success { border-color: rgba(66,214,164,.30); }
+    @media (max-width: 760px) {
+      .app-topbar, main { width: min(100% - 26px, 600px); }
+      .app-topbar { padding-top: 15px; }
+      main { padding-top: 12px; }
+      .brand-mark { width: 38px; height: 38px; border-radius: 12px; }
+      .brand-subtitle { font-size: 9px; }
+      .profile-trigger { gap: 7px; padding-right: 9px; }
+      .profile-trigger-hint { display: none; }
+      .profile-trigger-name { max-width: 90px; }
+      .room-header { align-items: flex-start; flex-direction: column; gap: 15px; }
+      .room-actions { justify-content: flex-start; width: 100%; }
+      .workspace { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+      .members-panel { order: 1; }
+      .members-panel .panel-heading { padding: 14px 15px; }
+      .member-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+      .members-tip { margin-top: 5px; }
+      .chat-panel { order: 2; min-height: 480px; }
+      .messages { max-height: 420px; min-height: 260px; padding: 15px; }
+      .message-row { max-width: 96%; }
+    }
+    @media (max-width: 420px) {
+      .brand-title { font-size: 13px; }
+      .brand-subtitle { letter-spacing: .04em; }
+      .brand { gap: 8px; }
+      .profile-trigger { gap: 6px; }
+      .profile-trigger-name { max-width: 65px; }
+      .avatar-sm { width: 31px; height: 31px; }
+      .login-card { border-radius: 21px; }
+      .room-actions .btn { flex: 1; padding: 9px 10px; }
+      .room-id-code { max-width: 190px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
 </head>
 <body>
-
-    <!-- MÀN HÌNH ĐĂNG NHẬP -->
-    <div id="login-screen" class="card">
-        <h2>Phòng Thoại Bảo Mật</h2>
-        <input type="text" id="username" placeholder="Nhập tên của bạn..." autocomplete="off">
-        <input type="password" id="room-pass" placeholder="Mật khẩu phòng..." autocomplete="off">
-        <button onclick="joinRoom()">Vào Phòng</button>
+  <header class="app-topbar">
+    <div class="brand" aria-label="Nameless Room">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 19 6v5c0 4.8-3 8-7 10-4-2-7-5.2-7-10V6l7-3Z"/><path d="M9.5 11.5v-1a2.5 2.5 0 0 1 5 0v1"/><rect x="8" y="11.5" width="8" height="5" rx="1.5"/></svg>
+      </div>
+      <div><p class="brand-title">Nameless Room</p><p class="brand-subtitle">Private voice · room chat</p></div>
     </div>
+    <button class="profile-trigger" id="profile-trigger" type="button" aria-label="Chỉnh sửa hồ sơ">
+      <span class="avatar avatar-sm" id="top-avatar">N</span>
+      <span class="profile-trigger-copy"><span class="profile-trigger-name" id="top-profile-name">Noname</span><span class="profile-trigger-hint">Hồ sơ của bạn</span></span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+    </button>
+  </header>
 
-    <!-- MÀN HÌNH TRONG PHÒNG -->
-    <div id="room-screen" class="card hidden">
-        <h3 id="room-title">Đang kết nối...</h3>
-        <p class="status">Thành viên trong phòng:</p>
-        <ul id="user-list">
-            <!-- Danh sách người dùng sẽ hiển thị ở đây -->
-        </ul>
-        <button onclick="location.reload()" style="background: #ef4444; margin-top: 20px;">Rời Phòng</button>
-    </div>
+  <main>
+    <section id="login-screen" class="screen login-wrap">
+      <div class="login-card">
+        <span class="eyebrow"><span class="eyebrow-dot"></span> Kết nối với mọi người</span>
+        <h1>Không gian trò chuyện<br>của riêng bạn.</h1>
+        <p class="login-intro">Nhập ID và mật khẩu phòng để tham gia. Bạn có thể nói chuyện bằng giọng nói và nhắn tin ngay trong cùng một giao diện.</p>
+        <form id="join-form">
+          <label class="field" for="room-id">
+            <span class="field-label">ID phòng <small>Do bạn và bạn bè thống nhất</small></span>
+            <input id="room-id" name="room-id" type="text" placeholder="Ví dụ: nhom-ban-than" maxlength="64" autocomplete="off" required />
+          </label>
+          <label class="field" for="room-pass">
+            <span class="field-label">Mật khẩu phòng</span>
+            <input id="room-pass" name="room-pass" type="password" placeholder="Nhập mật khẩu phòng" maxlength="128" autocomplete="current-password" required />
+          </label>
+          <p class="field-help">ID chưa có phòng đang hoạt động? Bạn sẽ tạo phòng mới. Người tạo phòng cần giữ trang web mở để mọi người tiếp tục kết nối.</p>
+          <button class="btn btn-primary join-button" id="join-button" type="submit">
+            <span>Vào phòng</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+        </form>
+        <div class="login-bottom">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+          <span>Đây là bản chạy trực tiếp trên trình duyệt. Tin nhắn được chuyển qua máy của chủ phòng; bản này chưa có mã hóa đầu-cuối (E2EE) cho tin nhắn.</span>
+        </div>
+      </div>
+    </section>
 
-    <!-- Nhúng PeerJS từ CDN -->
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <script>
-        let localStream, peer;
-        let myUsername = '';
-        const peers = {};
-        const usersData = {}; // Lưu trạng thái thành viên
+    <section id="room-screen" class="screen hidden" aria-label="Phòng thoại">
+      <div class="room-header">
+        <div class="room-heading">
+          <span class="eyebrow"><span class="eyebrow-dot"></span> Phòng thoại đang hoạt động</span>
+          <h1 id="room-title">Phòng</h1>
+          <p class="room-subtitle"><span>ID phòng</span><code class="room-id-code" id="room-id-label"></code><span id="connection-pill" class="connection-pill is-waiting">Đang kết nối</span></p>
+        </div>
+        <div class="room-actions">
+          <button id="mic-toggle" class="btn btn-soft mic-button" type="button" disabled>
+            <svg id="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg><span id="mic-label">Tắt mic</span>
+          </button>
+          <button id="leave-button" class="btn btn-danger" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>Rời phòng
+          </button>
+        </div>
+      </div>
 
-        async function joinRoom() {
-            myUsername = document.getElementById('username').value.trim();
-            const roomPass = document.getElementById('room-pass').value.trim();
+      <div class="workspace">
+        <aside class="panel members-panel">
+          <div class="panel-heading"><h2>Thành viên trong phòng</h2><span class="count-pill" id="member-count">0</span></div>
+          <ul id="user-list" class="member-list"><li class="members-empty">Đang tải danh sách thành viên…</li></ul>
+          <div class="members-tip"><strong>💡 Mẹo nhanh</strong>Nhấn vào ảnh đại diện ở góc trên để đổi tên hoặc ảnh. Trạng thái “Đang nói” được cập nhật khi phát hiện giọng nói.</div>
+        </aside>
 
-            if (!myUsername || !roomPass) {
-                alert('Vui lòng nhập đầy đủ tên và mật khẩu phòng!');
-                return;
+        <section class="panel chat-panel" aria-label="Tin nhắn phòng">
+          <div class="chat-topline">
+            <div><h2 class="chat-title">Trò chuyện</h2><p class="chat-caption">Tin nhắn chỉ dành cho những người đã vào phòng</p></div>
+            <span class="connection-pill" id="chat-connection-pill">Đang chờ kết nối</span>
+          </div>
+          <div id="messages" class="messages" aria-live="polite" aria-label="Lịch sử tin nhắn">
+            <div class="empty-chat" id="empty-chat"><div class="empty-chat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l-2 2v-9.5A7.5 7.5 0 0 1 10.5 4H12a8 8 0 0 1 8 7.5Z"/><path d="M8 11h8m-8 3h5"/></svg></div><strong>Chưa có tin nhắn nào</strong><span>Gửi lời chào để bắt đầu cuộc trò chuyện.</span></div>
+          </div>
+          <div class="composer-area">
+            <div id="reply-preview" class="reply-preview hidden">
+              <div class="reply-preview-copy"><strong id="reply-preview-name">Đang trả lời</strong><span id="reply-preview-text"></span></div>
+              <button id="cancel-reply" class="icon-button" type="button" aria-label="Hủy trả lời"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+            </div>
+            <form id="chat-form" class="composer">
+              <textarea id="message-input" rows="1" maxlength="2000" placeholder="Nhập tin nhắn… (Enter để gửi)" aria-label="Nội dung tin nhắn" disabled></textarea>
+              <button id="send-button" class="btn btn-primary send-button" type="submit" aria-label="Gửi tin nhắn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button>
+            </form>
+            <p class="keyboard-hint">Enter để gửi · Shift + Enter để xuống dòng · Chuột phải vào tin nhắn để sao chép hoặc trả lời</p>
+          </div>
+        </section>
+      </div>
+      <p class="room-disclaimer"><strong>Lưu ý:</strong> Âm thanh dùng kết nối WebRTC giữa các trình duyệt. Hãy chỉ chia sẻ ID và mật khẩu với người bạn tin tưởng; mật khẩu phòng không đồng nghĩa với mã hóa đầu-cuối.</p>
+    </section>
+  </main>
+
+  <div id="profile-modal" class="modal-backdrop hidden" role="presentation">
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+      <div class="modal-head"><div><h2 id="profile-modal-title">Hồ sơ của bạn</h2><p>Tên và ảnh đại diện sẽ được lưu trong trình duyệt này.</p></div><button id="close-profile-modal" class="icon-button" type="button" aria-label="Đóng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+      <form id="profile-form">
+        <div class="profile-preview"><span id="profile-preview-avatar" class="avatar avatar-lg">N</span><div class="profile-preview-copy"><strong id="profile-preview-name">Noname</strong><span>Ảnh sẽ được thu nhỏ trước khi lưu để tiết kiệm dung lượng.</span></div></div>
+        <label class="field" for="profile-name"><span class="field-label">Tên hiển thị <small>Tối đa 24 ký tự</small></span><input class="modal-input" id="profile-name" type="text" maxlength="24" placeholder="Noname" autocomplete="nickname" /></label>
+        <div class="field"><span class="field-label">Ảnh đại diện</span><div class="file-picker"><input id="avatar-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" /><label for="avatar-file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m-5 5 5-5 5 5"/><path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>Chọn ảnh</label><button id="remove-avatar" class="btn btn-soft" type="button">Xóa ảnh</button></div><p class="modal-note">Ảnh chỉ lưu trong bộ nhớ cục bộ của trình duyệt; xóa dữ liệu trình duyệt có thể làm mất ảnh đã lưu.</p></div>
+        <div class="modal-actions"><button id="cancel-profile-modal" class="btn btn-soft" type="button">Hủy</button><button class="btn btn-primary" type="submit">Lưu hồ sơ</button></div>
+      </form>
+    </section>
+  </div>
+
+  <div id="name-gate-modal" class="modal-backdrop hidden" role="presentation">
+    <section class="modal-card" role="dialog" aria-modal="true" aria-labelledby="name-gate-title">
+      <div class="modal-head"><div><h2 id="name-gate-title">Bạn muốn mọi người gọi là gì?</h2><p>Hãy đặt tên trước khi vào phòng, hoặc tiếp tục với tên mặc định.</p></div></div>
+      <form id="name-gate-form">
+        <label class="field" for="gate-name"><span class="field-label">Tên hiển thị</span><input class="modal-input" id="gate-name" type="text" maxlength="24" placeholder="Nhập tên của bạn" autocomplete="nickname" /></label>
+        <div class="gate-actions"><button class="btn btn-primary" type="submit">Lưu tên và vào phòng</button><button id="continue-noname" class="text-button" type="button">Tiếp tục với Noname</button></div>
+      </form>
+    </section>
+  </div>
+
+  <div id="message-context-menu" class="context-menu hidden" role="menu">
+    <button id="context-copy" type="button" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>Sao chép nội dung</button>
+    <button id="context-reply" type="button" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 14-5-5 5-5"/><path d="M4 9h9a7 7 0 0 1 7 7v3"/></svg>Trả lời tin nhắn</button>
+  </div>
+  <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script>
+    'use strict';
+
+    const PROFILE_KEY = 'secureVoiceRoom.profile.v1';
+    const MAX_MESSAGE_LENGTH = 2000;
+    const MAX_HISTORY = 50;
+    const $ = (id) => document.getElementById(id);
+
+    let profile = loadProfile();
+    let localStream = null;
+    let peer = null;
+    let hostPeer = null;
+    let hostConnection = null;
+    let hostId = '';
+    let roomId = '';
+    let roomPasswordHash = '';
+    let myPeerId = '';
+    let myUsername = 'Noname';
+    let myAvatar = '';
+    let isHost = false;
+    let micMuted = false;
+    let joining = false;
+    let leaving = false;
+    let authAccepted = false;
+    let hostAttemptHandled = false;
+    let hostAttemptTimer = null;
+    let pendingAvatar = '';
+    let replyTarget = null;
+    let selectedContextMessage = null;
+
+    const usersData = Object.create(null);
+    const dataConnections = Object.create(null);
+    const mediaCalls = Object.create(null);
+    const audioElements = Object.create(null);
+    const audioMonitors = Object.create(null);
+    const messageStore = new Map();
+    const messageHistory = [];
+
+    const ICON_MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8"/></svg>';
+    const ICON_MIC_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 3 18 18M9 9v3a3 3 0 0 0 5.1 2.1M15 9V6a3 3 0 0 0-5.8-1M5 10v2a7 7 0 0 0 11.5 5.4M19 10v2a7 7 0 0 1-.4 2.3M12 19v3m-4 0h8"/></svg>';
+
+    function loadProfile() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+        return { name: cleanName(saved.name || '', true), avatar: typeof saved.avatar === 'string' ? saved.avatar : '' };
+      } catch (_) { return { name: '', avatar: '' }; }
+    }
+
+    function cleanName(value, allowEmpty = false) {
+      const cleaned = String(value || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 24);
+      return cleaned || (allowEmpty ? '' : 'Noname');
+    }
+
+    function effectiveName() { return cleanName(profile.name, false); }
+
+    function saveProfile(nextProfile) {
+      profile = { name: cleanName(nextProfile.name, true), avatar: typeof nextProfile.avatar === 'string' ? nextProfile.avatar : '' };
+      try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); }
+      catch (_) { showToast('Không thể lưu hồ sơ. Ảnh có thể quá lớn; hãy chọn ảnh khác.', 'error'); }
+      paintProfile();
+    }
+
+    function paintAvatar(element, name, avatarUrl) {
+      element.replaceChildren();
+      if (avatarUrl) {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.src = avatarUrl;
+        img.onerror = () => { element.replaceChildren(); element.textContent = (name || 'N').trim().charAt(0).toUpperCase() || 'N'; };
+        element.appendChild(img);
+      } else {
+        element.textContent = (name || 'N').trim().charAt(0).toUpperCase() || 'N';
+      }
+    }
+
+    function paintProfile() {
+      const name = effectiveName();
+      $('top-profile-name').textContent = name;
+      paintAvatar($('top-avatar'), name, profile.avatar);
+      $('profile-name').value = profile.name;
+      $('profile-preview-name').textContent = name;
+      paintAvatar($('profile-preview-avatar'), name, pendingAvatar || profile.avatar);
+    }
+
+    function showToast(message, type = '') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`.trim();
+      toast.textContent = message;
+      $('toast-region').appendChild(toast);
+      window.setTimeout(() => toast.remove(), 4300);
+    }
+
+    function setConnectionStatus(label, state = 'online') {
+      const pill = $('connection-pill');
+      pill.textContent = label;
+      pill.classList.toggle('is-waiting', state === 'waiting');
+      pill.classList.toggle('is-offline', state === 'offline');
+      $('chat-connection-pill').textContent = state === 'online' ? 'Đã kết nối' : state === 'offline' ? 'Mất kết nối' : 'Đang kết nối';
+      $('chat-connection-pill').classList.toggle('is-waiting', state === 'waiting');
+      $('chat-connection-pill').classList.toggle('is-offline', state === 'offline');
+    }
+
+    async function hashString(value) {
+      const bytes = new TextEncoder().encode(value);
+      if (window.crypto && window.crypto.subtle) {
+        const digest = await window.crypto.subtle.digest('SHA-256', bytes);
+        return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+      }
+      // Fallback phục vụ môi trường cũ; đây không phải hàm băm mật mã mạnh.
+      let h1 = 0x811c9dc5, h2 = 0x9e3779b9, h3 = 0x85ebca6b, h4 = 0xc2b2ae35;
+      for (const byte of bytes) {
+        h1 = Math.imul(h1 ^ byte, 0x01000193);
+        h2 = Math.imul(h2 ^ byte, 0x27d4eb2d);
+        h3 = Math.imul(h3 ^ byte, 0x165667b1);
+        h4 = Math.imul(h4 ^ byte, 0x9e3779b1);
+      }
+      return [h1, h2, h3, h4, h1 ^ h3, h2 ^ h4, h1 ^ h4, h2 ^ h3]
+        .map((n) => (n >>> 0).toString(16).padStart(8, '0')).join('');
+    }
+
+    function makeId() {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+      return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+    }
+
+    $('join-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (joining) return;
+      roomId = $('room-id').value.trim();
+      const password = $('room-pass').value;
+      if (!roomId || !password.trim()) { showToast('Vui lòng nhập ID và mật khẩu phòng.', 'error'); return; }
+      if (roomId.length > 64) { showToast('ID phòng tối đa 64 ký tự.', 'error'); return; }
+      if (!profile.name) {
+        $('gate-name').value = '';
+        $('name-gate-modal').classList.remove('hidden');
+        $('gate-name').focus();
+        return;
+      }
+      await beginJoin(password);
+    });
+
+    $('name-gate-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const name = cleanName($('gate-name').value, true);
+      if (!name) { showToast('Nhập tên hoặc chọn tiếp tục với Noname.', 'error'); return; }
+      saveProfile({ ...profile, name });
+      $('name-gate-modal').classList.add('hidden');
+      await beginJoin($('room-pass').value);
+    });
+
+    $('continue-noname').addEventListener('click', async () => {
+      $('name-gate-modal').classList.add('hidden');
+      await beginJoin($('room-pass').value);
+    });
+
+    async function beginJoin(password) {
+      if (joining) return;
+      joining = true;
+      $('join-button').disabled = true;
+      $('join-button').querySelector('span').textContent = 'Đang chuẩn bị…';
+      myUsername = effectiveName();
+      myAvatar = profile.avatar;
+      micMuted = false;
+      leaving = false;
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Trình duyệt không hỗ trợ microphone ở địa chỉ này. Hãy mở bằng HTTPS hoặc localhost.');
+        }
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+        roomPasswordHash = await hashString(`secure-voice-room:v1:${roomId.toLowerCase()}:${password}`);
+        hostId = `svr-${(await hashString(`secure-voice-room-id:${roomId.toLowerCase()}`)).slice(0, 40)}`;
+        $('login-screen').classList.add('hidden');
+        $('room-screen').classList.remove('hidden');
+        $('room-title').textContent = `Phòng: ${roomId}`;
+        $('room-id-label').textContent = roomId;
+        $('user-list').replaceChildren();
+        $('member-count').textContent = '0';
+        $('messages').replaceChildren($('empty-chat'));
+        $('empty-chat').classList.remove('hidden');
+        messageStore.clear(); messageHistory.length = 0;
+        setConnectionStatus('Đang tìm phòng', 'waiting');
+        $('mic-toggle').disabled = false;
+        $('mic-toggle').classList.remove('is-muted');
+        $('mic-label').textContent = 'Tắt mic';
+        $('mic-icon').outerHTML = ICON_MIC.replace('svg', 'svg id="mic-icon"');
+        $('message-input').disabled = true;
+        $('send-button').disabled = true;
+        $('message-input').value = '';
+        hostAttemptHandled = false;
+        isHost = false;
+        authAccepted = false;
+        hostPeer = new Peer(hostId, { debug: 0 });
+        hostPeer.on('open', () => {
+          if (hostAttemptHandled || leaving) return;
+          hostAttemptHandled = true;
+          clearTimeout(hostAttemptTimer);
+          isHost = true;
+          myPeerId = hostId;
+          usersData[myPeerId] = { id: myPeerId, name: myUsername, avatar: myAvatar, isSpeaking: false };
+          monitorAudioActivity(localStream, myPeerId, true);
+          renderUserList();
+          setConnectionStatus('Bạn là chủ phòng', 'online');
+          $('message-input').disabled = false;
+          $('send-button').disabled = false;
+          authAccepted = true;
+          showToast('Bạn đã tạo phòng. Giữ trang này mở để mọi người kết nối.', 'success');
+          hostPeer.on('connection', handleIncomingDataConnection);
+          hostPeer.on('call', handleHostIncomingCall);
+        });
+        hostPeer.on('error', (err) => {
+          if (leaving) return;
+          if (err && err.type === 'unavailable-id' && !hostAttemptHandled) {
+            hostAttemptHandled = true;
+            clearTimeout(hostAttemptTimer);
+            try { hostPeer.destroy(); } catch (_) {}
+            hostPeer = null;
+            startAsClient();
+          } else if (isHost) {
+            console.warn('Peer host error:', err);
+            if (err && ['network', 'server-error', 'socket-error'].includes(err.type)) setConnectionStatus('Lỗi kết nối', 'offline');
+          } else if (!hostAttemptHandled) {
+            console.warn('Peer room lookup error:', err);
+            clearTimeout(hostAttemptTimer);
+            hostAttemptHandled = true;
+            try { hostPeer.destroy(); } catch (_) {}
+            hostPeer = null;
+            startAsClient();
+          }
+        });
+        hostAttemptTimer = window.setTimeout(() => {
+          if (!hostAttemptHandled && !leaving) {
+            hostAttemptHandled = true;
+            try { hostPeer && hostPeer.destroy(); } catch (_) {}
+            hostPeer = null;
+            startAsClient();
+          }
+        }, 8000);
+      } catch (error) {
+        console.error(error);
+        showToast(error && error.message ? error.message : 'Không thể truy cập microphone.', 'error');
+        await resetToLogin();
+      } finally {
+        joining = false;
+        $('join-button').disabled = false;
+        $('join-button').querySelector('span').textContent = 'Vào phòng';
+      }
+    }
+
+    function startAsClient() {
+      if (leaving) return;
+      setConnectionStatus('Đang vào phòng', 'waiting');
+      peer = new Peer({ debug: 0 });
+      peer.on('open', (id) => {
+        if (leaving) return;
+        myPeerId = id;
+        peer.on('call', handleIncomingPeerCall);
+        const conn = peer.connect(hostId, {
+          reliable: true,
+          metadata: { username: myUsername, avatar: myAvatar, passHash: roomPasswordHash, peerId: myPeerId }
+        });
+        hostConnection = conn;
+        let authResponseReceived = false;
+        const authTimer = window.setTimeout(() => {
+          if (!authResponseReceived && !leaving) {
+            showToast('Không nhận được phản hồi từ phòng. Kiểm tra ID hoặc thử lại.', 'error');
+            leaveRoom(true);
+          }
+        }, 12000);
+        conn.on('open', () => setConnectionStatus('Đang xác thực mật khẩu', 'waiting'));
+        conn.on('data', (data) => {
+          if (data && data.type === 'auth') {
+            authResponseReceived = true;
+            clearTimeout(authTimer);
+            if (!data.ok) {
+              showToast(data.reason || 'Mật khẩu phòng không đúng.', 'error');
+              leaveRoom(true);
+              return;
             }
-
-            // 1. Xin quyền Micro ngay khi bấm nút (thỏa mãn yêu cầu tương tác trình duyệt)
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-            } catch (err) {
-                alert('Không thể truy cập Microphone. Vui lòng cấp quyền!');
-                return;
-            }
-
-            // Chuyển giao diện
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('room-screen').classList.remove('hidden');
-            document.getElementById('room-title').innerText = `Phòng: ${roomPass}`;
-
-            // Thêm bản thân vào danh sách hiển thị
-            addUserToList('self', myUsername, true);
-            monitorAudioActivity(localStream, 'self');
-
-            // Tạo ID định danh phòng từ mật khẩu
-            const HOST_ID = 'secure-voice-room-' + btoa(roomPass).replace(/=/g, '');
-
-            peer = new Peer();
-
-            peer.on('open', id => {
-                // Thử kết nối với tư cách là Client gọi tới Host ID của phòng
-                connectToHost(HOST_ID);
+            authAccepted = true;
+            Object.keys(usersData).forEach((key) => delete usersData[key]);
+            (Array.isArray(data.members) ? data.members : []).forEach((member) => {
+              if (!member || !member.id) return;
+              usersData[member.id] = { id: member.id, name: cleanName(member.name, false), avatar: member.avatar || '', isSpeaking: !!member.isSpeaking };
             });
-
-            peer.on('error', err => {
-                console.log('Lỗi peer:', err);
-            });
-        }
-
-        function connectToHost(hostId) {
-            // Kiểm tra xem mình có phải là Host đầu tiên hay không bằng cách gọi tới chính HOST_ID
-            // Nếu Host chưa tồn tại, ta sẽ tự chiếm ID đó làm Host.
-            const hostPeer = new Peer(hostId);
-
-            hostPeer.on('open', () => {
-                console.log('Bạn là chủ phòng (Host).');
-                // Host lắng nghe kết nối đến
-                hostPeer.on('call', call => {
-                    const metadata = call.metadata || {};
-                    const remoteUser = metadata.username || 'Khách ẩn danh';
-                    const remotePeerId = call.peer;
-
-                    call.answer(localStream);
-                    setupCallEvents(call, remotePeerId, remoteUser);
-                });
-            });
-
-            hostPeer.on('error', err => {
-                if (err.type === 'unavailable-id') {
-                    // Phòng đã có Host, ta tham gia với tư cách Client thông thường
-                    console.log('Phòng đã tồn tại, đang vào...');
-                    joinAsClient(hostId);
-                }
-            });
-        }
-
-        function joinAsClient(hostId) {
-            // Gọi lên Host để xin kết nối và gửi kèm tên của mình qua metadata
-            const call = peer.call(hostId, localStream, {
-                metadata: { username: myUsername }
-            });
-            setupCallEvents(call, hostId, 'Chủ phòng');
-
-            // Lắng nghe các cuộc gọi ngược lại hoặc kết nối khác
-            peer.on('call', call => {
-                const metadata = call.metadata || {};
-                const remoteUser = metadata.username || 'Thành viên';
-                call.answer(localStream);
-                setupCallEvents(call, call.peer, remoteUser);
-            });
-        }
-
-        function setupCallEvents(call, peerId, username) {
-            call.on('stream', remoteStream => {
-                playAudioStream(remoteStream);
-                addUserToList(peerId, username, false);
-                monitorAudioActivity(remoteStream, peerId);
-            });
-
-            call.on('close', () => {
-                removeUserFromList(peerId);
-            });
-        }
-
-        function playAudioStream(stream) {
-            const audio = document.createElement('audio');
-            audio.srcObject = stream;
-            audio.autoplay = true;
-            audio.playsInline = true;
-            document.body.appendChild(audio);
-        }
-
-        // Quản lý hiển thị danh sách người dùng
-        function addUserToList(id, name, isSelf) {
-            usersData[id] = { name: name, isSpeaking: false };
+            usersData[myPeerId] = { id: myPeerId, name: myUsername, avatar: myAvatar, isSpeaking: false };
             renderUserList();
+            setConnectionStatus('Đã kết nối', 'online');
+            $('message-input').disabled = false;
+            $('send-button').disabled = false;
+            monitorAudioActivity(localStream, myPeerId, true);
+            if (Array.isArray(data.history)) data.history.slice(-MAX_HISTORY).forEach(appendMessage);
+            // Người mới chủ động gọi các thành viên đã có; tránh hai bên gọi trùng nhau.
+            Object.values(usersData).forEach((member) => {
+              if (member.id !== myPeerId) connectAudioToMember(member);
+            });
+          } else if (authAccepted) {
+            handleClientRoomMessage(data);
+          }
+        });
+        conn.on('close', () => {
+          clearTimeout(authTimer);
+          if (!leaving && authAccepted) {
+            setConnectionStatus('Mất kết nối chủ phòng', 'offline');
+            showToast('Đã mất kết nối với chủ phòng. Bạn đã rời khỏi phòng.', 'error');
+            leaveRoom(true);
+          }
+        });
+        conn.on('error', (err) => {
+          console.warn('Data connection error:', err);
+          if (!authAccepted && !leaving) {
+            showToast('Không kết nối được tới phòng. Có thể ID chưa tồn tại hoặc chủ phòng đã ngoại tuyến.', 'error');
+            leaveRoom(true);
+          }
+        });
+      });
+      peer.on('error', (err) => {
+        console.warn('Peer client error:', err);
+        if (!leaving && ['network', 'server-error', 'socket-error'].includes(err.type)) {
+          setConnectionStatus('Lỗi kết nối', 'offline');
+          showToast('Có lỗi kết nối PeerJS. Hãy thử vào lại phòng.', 'error');
         }
+      });
+    }
 
-        function removeUserFromList(id) {
-            delete usersData[id];
-            renderUserList();
+    function handleIncomingDataConnection(conn) {
+      let authenticated = false;
+      conn._roomAuthed = false;
+      conn.on('open', () => {
+        const meta = conn.metadata || {};
+        if (!meta.passHash || meta.passHash !== roomPasswordHash) {
+          try { conn.send({ type: 'auth', ok: false, reason: 'Mật khẩu phòng không đúng.' }); } catch (_) {}
+          window.setTimeout(() => { try { conn.close(); } catch (_) {} }, 150);
+          return;
         }
-
-        function updateSpeakingStatus(id, isSpeaking) {
-            if (usersData[id]) {
-                usersData[id].isSpeaking = isSpeaking;
-                renderUserList();
-            }
+        const id = conn.peer;
+        const name = cleanName(meta.username, false);
+        const avatar = typeof meta.avatar === 'string' && meta.avatar.length < 500000 ? meta.avatar : '';
+        authenticated = true;
+        conn._roomAuthed = true;
+        dataConnections[id] = conn;
+        usersData[id] = { id, name, avatar, isSpeaking: false };
+        try { conn.send({ type: 'auth', ok: true, members: getMembersPayload(), history: messageHistory.slice(-MAX_HISTORY) }); }
+        catch (error) { console.warn('Cannot send auth response:', error); }
+        broadcastToClients({ type: 'member_joined', member: publicMember(usersData[id]) }, id);
+        renderUserList();
+        setConnectionStatus('Bạn là chủ phòng', 'online');
+      });
+      conn.on('data', (data) => {
+        if (authenticated && conn._roomAuthed) handleHostData(conn, data);
+      });
+      conn.on('close', () => {
+        if (!authenticated) return;
+        const id = conn.peer;
+        delete dataConnections[id];
+        if (usersData[id]) {
+          delete usersData[id];
+          closeCallsForPeer(id);
+          cleanupAudioMonitor(id);
+          removeAudioElement(id);
+          broadcastToClients({ type: 'member_left', id });
+          renderUserList();
         }
+      });
+      conn.on('error', (err) => console.warn('Incoming data connection error:', err));
+    }
 
-        function renderUserList() {
-            const list = document.getElementById('user-list');
-            list.innerHTML = '';
-            for (const id in usersData) {
-                const user = usersData[id];
-                const li = document.createElement('li');
-                if (user.isSpeaking) li.classList.add('speaking');
-                
-                li.innerHTML = `
-                    <span>👤 ${user.name} ${id === 'self' ? '(Bạn)' : ''}</span>
-                    <span class="status">${user.isSpeaking ? '🔊 Đang nói...' : 'Im lặng'}</span>
-                `;
-                list.appendChild(li);
-            }
+    function handleHostIncomingCall(call) {
+      const id = call.peer;
+      const conn = dataConnections[id];
+      const meta = call.metadata || {};
+      if (!conn || !conn._roomAuthed || meta.passHash !== roomPasswordHash) {
+        try { call.close(); } catch (_) {}
+        return;
+      }
+      const member = usersData[id] || { name: cleanName(meta.username, false), avatar: meta.avatar || '' };
+      try { call.answer(localStream); } catch (error) { console.error('Không thể trả lời cuộc gọi:', error); return; }
+      setupCallEvents(call, id, member.name, member.avatar);
+    }
+
+    function handleIncomingPeerCall(call) {
+      const meta = call.metadata || {};
+      if (!authAccepted || meta.passHash !== roomPasswordHash) {
+        try { call.close(); } catch (_) {}
+        return;
+      }
+      const member = usersData[call.peer] || { id: call.peer, name: cleanName(meta.username, false), avatar: meta.avatar || '', isSpeaking: false };
+      if (!usersData[call.peer]) { usersData[call.peer] = member; renderUserList(); }
+      try { call.answer(localStream); } catch (error) { console.error('Không thể trả lời cuộc gọi:', error); return; }
+      setupCallEvents(call, call.peer, member.name, member.avatar);
+    }
+
+    function connectAudioToMember(member) {
+      if (!member || !member.id || member.id === myPeerId || !peer || !localStream || !authAccepted) return;
+      if (mediaCalls[member.id] && mediaCalls[member.id].open) return;
+      try {
+        const call = peer.call(member.id, localStream, {
+          metadata: { username: myUsername, avatar: myAvatar, passHash: roomPasswordHash }
+        });
+        if (!call) return;
+        setupCallEvents(call, member.id, member.name, member.avatar);
+      } catch (error) { console.warn('Unable to call member:', member.id, error); }
+    }
+
+    function setupCallEvents(call, peerId, username, avatar) {
+      const existing = mediaCalls[peerId];
+      if (existing && existing !== call) { try { existing.close(); } catch (_) {} }
+      mediaCalls[peerId] = call;
+      call.on('stream', (remoteStream) => {
+        if (leaving) return;
+        playAudioStream(remoteStream, peerId);
+        const current = usersData[peerId];
+        if (current) {
+          if (username) current.name = cleanName(username, false);
+          if (avatar) current.avatar = avatar;
+        } else {
+          usersData[peerId] = { id: peerId, name: cleanName(username, false), avatar: avatar || '', isSpeaking: false };
         }
+        renderUserList();
+        monitorAudioActivity(remoteStream, peerId, false);
+      });
+      call.on('close', () => {
+        if (mediaCalls[peerId] === call) delete mediaCalls[peerId];
+        cleanupAudioMonitor(peerId);
+        removeAudioElement(peerId);
+      });
+      call.on('error', (err) => console.warn('Media call error:', peerId, err));
+    }
 
-        // Thuật toán dùng Web Audio API để nhận diện âm thanh phát ra (Ai đang nói)
-        function monitorAudioActivity(stream, id) {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const source = audioCtx.createMediaStreamSource(stream);
-                const analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 512;
-                source.connect(analyser);
+    function playAudioStream(stream, id) {
+      let audio = audioElements[id];
+      if (!audio) {
+        audio = document.createElement('audio');
+        audio.autoplay = true;
+        audio.playsInline = true;
+        audio.dataset.peerId = id;
+        audio.setAttribute('aria-label', `Âm thanh từ ${usersData[id] ? usersData[id].name : 'thành viên'}`);
+        audioElements[id] = audio;
+        document.body.appendChild(audio);
+      }
+      audio.srcObject = stream;
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => showToast('Trình duyệt đang chặn âm thanh tự phát. Hãy tương tác với trang hoặc kiểm tra quyền âm thanh.', ''));
+      }
+    }
 
-                const dataArray = new Uint8Array(analyser.frequencyBinCount);
-                let isSpeaking = false;
+    function removeAudioElement(id) {
+      const audio = audioElements[id];
+      if (audio) {
+        try { audio.pause(); audio.srcObject = null; } catch (_) {}
+        audio.remove();
+        delete audioElements[id];
+      }
+    }
 
-                setInterval(() => {
-                    analyser.getByteFrequencyData(dataArray);
-                    let sum = 0;
-                    for (let i = 0; i < dataArray.length; i++) {
-                        sum += dataArray[i];
-                    }
-                    let average = sum / dataArray.length;
-                    
-                    // Ngưỡng âm thanh kích hoạt trạng thái "Đang nói" (có thể tinh chỉnh số 15)
-                    let speakingNow = average > 35; 
+    function cleanupAudioMonitor(id) {
+      const monitor = audioMonitors[id];
+      if (!monitor) return;
+      cancelAnimationFrame(monitor.raf);
+      try { monitor.source.disconnect(); monitor.analyser.disconnect(); } catch (_) {}
+      try { monitor.context.close(); } catch (_) {}
+      delete audioMonitors[id];
+    }
 
-                    if (speakingNow !== isSpeaking) {
-                        isSpeaking = speakingNow;
-                        updateSpeakingStatus(id, isSpeaking);
-                    }
-                }, 100);
-            } catch (e) {
-                console.error("Lỗi phân tích âm thanh:", e);
-            }
+    function monitorAudioActivity(stream, id, isLocal = false) {
+      cleanupAudioMonitor(id);
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const context = new AudioContextClass();
+        const source = context.createMediaStreamSource(stream);
+        const analyser = context.createAnalyser();
+        analyser.fftSize = 512;
+        analyser.smoothingTimeConstant = 0.35;
+        source.connect(analyser);
+        const values = new Uint8Array(analyser.fftSize);
+        let speaking = false;
+        const tick = () => {
+          if (!audioMonitors[id]) return;
+          analyser.getByteTimeDomainData(values);
+          let sum = 0;
+          for (let i = 0; i < values.length; i++) {
+            const sample = (values[i] - 128) / 128;
+            sum += sample * sample;
+          }
+          const rms = Math.sqrt(sum / values.length);
+          const speakingNow = !(isLocal && micMuted) && rms > 0.045;
+          if (speakingNow !== speaking) {
+            speaking = speakingNow;
+            updateSpeakingStatus(id, speakingNow, true);
+          }
+          audioMonitors[id].raf = requestAnimationFrame(tick);
+        };
+        audioMonitors[id] = { context, source, analyser, raf: requestAnimationFrame(tick) };
+        if (context.state === 'suspended') context.resume().catch(() => {});
+      } catch (error) { console.error('Lỗi phân tích âm thanh:', error); }
+    }
+
+    function updateSpeakingStatus(id, isSpeaking, announce) {
+      if (!usersData[id]) return;
+      if (usersData[id].isSpeaking === isSpeaking) return;
+      usersData[id].isSpeaking = isSpeaking;
+      renderUserList();
+      if (!announce || leaving) return;
+      const payload = { type: 'speaking', id, isSpeaking };
+      if (isHost) broadcastToClients(payload);
+      else if (id === myPeerId && hostConnection && hostConnection.open) {
+        try { hostConnection.send({ type: 'speaking', isSpeaking }); } catch (_) {}
+      }
+    }
+
+    function handleHostData(conn, data) {
+      if (!data || typeof data !== 'object') return;
+      const id = conn.peer;
+      if (data.type === 'chat') {
+        const text = typeof data.text === 'string' ? data.text.trim().slice(0, MAX_MESSAGE_LENGTH) : '';
+        if (!text) return;
+        const user = usersData[id];
+        const message = {
+          id: makeId(), senderId: id, senderName: user ? user.name : 'Noname', senderAvatar: user ? user.avatar : '',
+          text, time: Date.now(), replyTo: validReply(data.replyTo)
+        };
+        appendMessage(message);
+        broadcastToClients({ type: 'chat', message });
+      } else if (data.type === 'speaking') {
+        updateSpeakingStatus(id, !!data.isSpeaking, false);
+        broadcastToClients({ type: 'speaking', id, isSpeaking: !!data.isSpeaking }, id);
+      } else if (data.type === 'profile_update') {
+        const user = usersData[id];
+        if (!user) return;
+        user.name = cleanName(data.name, false);
+        user.avatar = typeof data.avatar === 'string' && data.avatar.length < 500000 ? data.avatar : '';
+        broadcastToClients({ type: 'member_updated', member: publicMember(user) });
+        renderUserList();
+      }
+    }
+
+    function handleClientRoomMessage(data) {
+      if (!data || typeof data !== 'object') return;
+      if (data.type === 'chat' && data.message) {
+        appendMessage(data.message);
+      } else if (data.type === 'member_joined' && data.member && data.member.id) {
+        const member = data.member;
+        usersData[member.id] = { id: member.id, name: cleanName(member.name, false), avatar: member.avatar || '', isSpeaking: !!member.isSpeaking };
+        renderUserList();
+      } else if (data.type === 'member_left' && data.id) {
+        delete usersData[data.id];
+        closeCallsForPeer(data.id);
+        cleanupAudioMonitor(data.id);
+        removeAudioElement(data.id);
+        renderUserList();
+      } else if (data.type === 'member_updated' && data.member && data.member.id) {
+        const old = usersData[data.member.id] || { isSpeaking: false };
+        usersData[data.member.id] = { ...old, ...data.member, name: cleanName(data.member.name, false), avatar: data.member.avatar || '' };
+        renderUserList();
+        if (data.member.id === myPeerId) {
+          myUsername = usersData[myPeerId].name;
+          myAvatar = usersData[myPeerId].avatar;
         }
-    </script>
+      } else if (data.type === 'speaking' && data.id) {
+        updateSpeakingStatus(data.id, !!data.isSpeaking, false);
+      }
+    }
+
+    function validReply(reply) {
+      if (!reply || typeof reply !== 'object') return null;
+      return {
+        id: String(reply.id || '').slice(0, 100),
+        name: cleanName(reply.name, false),
+        text: typeof reply.text === 'string' ? reply.text.slice(0, MAX_MESSAGE_LENGTH) : ''
+      };
+    }
+
+    function broadcastToClients(payload, excludeId = null) {
+      Object.entries(dataConnections).forEach(([id, conn]) => {
+        if (id === excludeId || !conn || !conn.open || !conn._roomAuthed) return;
+        try { conn.send(payload); } catch (error) { console.warn('Cannot broadcast to', id, error); }
+      });
+    }
+
+    function getMembersPayload() { return Object.values(usersData).map(publicMember); }
+    function publicMember(user) {
+      return { id: user.id, name: user.name, avatar: user.avatar || '', isSpeaking: !!user.isSpeaking };
+    }
+
+    function renderUserList() {
+      const list = $('user-list');
+      list.replaceChildren();
+      const members = Object.values(usersData);
+      $('member-count').textContent = String(members.length);
+      if (!members.length) {
+        const empty = document.createElement('li');
+        empty.className = 'members-empty';
+        empty.textContent = 'Chưa có thành viên nào.';
+        list.appendChild(empty);
+        return;
+      }
+      members.sort((a, b) => {
+        if (a.id === myPeerId) return -1;
+        if (b.id === myPeerId) return 1;
+        if (a.id === hostId) return -1;
+        if (b.id === hostId) return 1;
+        return a.name.localeCompare(b.name, 'vi');
+      });
+      members.forEach((user) => {
+        const item = document.createElement('li');
+        item.className = `member-row${user.isSpeaking ? ' is-speaking' : ''}`;
+        const avatar = document.createElement('span'); avatar.className = 'avatar avatar-md';
+        paintAvatar(avatar, user.name, user.avatar);
+        const meta = document.createElement('div'); meta.className = 'member-meta';
+        const nameLine = document.createElement('p'); nameLine.className = 'member-name';
+        const nameText = document.createElement('span'); nameText.className = 'member-name-text'; nameText.textContent = user.name || 'Noname';
+        nameLine.appendChild(nameText);
+        if (user.id === myPeerId) {
+          const role = document.createElement('span'); role.className = 'member-role'; role.textContent = '(Bạn)'; nameLine.appendChild(role);
+        } else if (user.id === hostId) {
+          const role = document.createElement('span'); role.className = 'member-role'; role.textContent = 'Chủ phòng'; nameLine.appendChild(role);
+        }
+        const status = document.createElement('p'); status.className = 'member-status';
+        const dot = document.createElement('span'); dot.className = 'status-dot';
+        const label = document.createElement('span'); label.textContent = user.isSpeaking ? 'Đang nói…' : (user.id === myPeerId && micMuted ? 'Mic đã tắt' : 'Đang nghe');
+        status.append(dot, label); meta.append(nameLine, status); item.append(avatar, meta); list.appendChild(item);
+      });
+    }
+
+    function appendMessage(rawMessage) {
+      if (!rawMessage || typeof rawMessage !== 'object' || !rawMessage.id) return;
+      const message = {
+        id: String(rawMessage.id), senderId: String(rawMessage.senderId || ''),
+        senderName: cleanName(rawMessage.senderName, false), senderAvatar: typeof rawMessage.senderAvatar === 'string' ? rawMessage.senderAvatar : '',
+        text: typeof rawMessage.text === 'string' ? rawMessage.text.slice(0, MAX_MESSAGE_LENGTH) : '',
+        time: Number(rawMessage.time) || Date.now(), replyTo: validReply(rawMessage.replyTo)
+      };
+      if (messageStore.has(message.id)) return;
+      messageStore.set(message.id, message);
+      messageHistory.push(message);
+      if (messageHistory.length > MAX_HISTORY) messageHistory.splice(0, messageHistory.length - MAX_HISTORY);
+      $('empty-chat').classList.add('hidden');
+
+      const row = document.createElement('div');
+      row.className = `message-row${message.senderId === myPeerId ? ' own' : ''}`;
+      row.dataset.messageId = message.id;
+      const avatar = document.createElement('span'); avatar.className = 'avatar';
+      paintAvatar(avatar, message.senderName, message.senderAvatar);
+      const stack = document.createElement('div'); stack.className = 'message-stack';
+      const meta = document.createElement('div'); meta.className = 'message-meta';
+      const sender = document.createElement('strong'); sender.textContent = message.senderName;
+      const time = document.createElement('span'); time.className = 'message-time'; time.textContent = formatTime(message.time);
+      meta.append(sender, time);
+      const bubble = document.createElement('div'); bubble.className = 'message-bubble';
+      if (message.replyTo && message.replyTo.text) {
+        const quote = document.createElement('div'); quote.className = 'reply-quote';
+        const quoteName = document.createElement('strong'); quoteName.textContent = message.replyTo.name || 'Tin nhắn được trả lời';
+        const quoteText = document.createElement('span'); quoteText.textContent = message.replyTo.text;
+        quote.append(quoteName, quoteText); bubble.appendChild(quote);
+      }
+      const text = document.createElement('span'); text.textContent = message.text; bubble.appendChild(text);
+      stack.append(meta, bubble); row.append(avatar, stack); $('messages').appendChild(row);
+      $('messages').scrollTop = $('messages').scrollHeight;
+    }
+
+    function formatTime(timestamp) {
+      try { return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp)); }
+      catch (_) { return ''; }
+    }
+
+    $('chat-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const text = $('message-input').value.trim().slice(0, MAX_MESSAGE_LENGTH);
+      if (!text || !authAccepted) return;
+      const message = {
+        id: makeId(), text,
+        replyTo: replyTarget ? { id: replyTarget.id, name: replyTarget.senderName || replyTarget.name, text: replyTarget.text } : null
+      };
+      if (isHost) {
+        const fullMessage = { ...message, senderId: myPeerId, senderName: myUsername, senderAvatar: myAvatar, time: Date.now() };
+        appendMessage(fullMessage);
+        broadcastToClients({ type: 'chat', message: fullMessage });
+      } else if (hostConnection && hostConnection.open) {
+        try { hostConnection.send({ type: 'chat', ...message }); }
+        catch (_) { showToast('Không gửi được tin nhắn. Kiểm tra kết nối phòng.', 'error'); return; }
+      } else {
+        showToast('Bạn chưa kết nối được tới phòng.', 'error'); return;
+      }
+      $('message-input').value = '';
+      resizeMessageInput();
+      clearReply();
+      $('message-input').focus();
+    });
+
+    $('message-input').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+        event.preventDefault(); $('chat-form').requestSubmit();
+      }
+    });
+    $('message-input').addEventListener('input', resizeMessageInput);
+    function resizeMessageInput() {
+      const input = $('message-input');
+      input.style.height = 'auto';
+      input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+    }
+
+    $('messages').addEventListener('contextmenu', (event) => {
+      const row = event.target.closest('.message-row');
+      if (!row) return;
+      const message = messageStore.get(row.dataset.messageId);
+      if (!message) return;
+      event.preventDefault();
+      selectedContextMessage = message;
+      const menu = $('message-context-menu');
+      menu.classList.remove('hidden');
+      let left = event.clientX, top = event.clientY;
+      requestAnimationFrame(() => {
+        const rect = menu.getBoundingClientRect();
+        left = Math.min(left, window.innerWidth - rect.width - 8);
+        top = Math.min(top, window.innerHeight - rect.height - 8);
+        menu.style.left = `${Math.max(8, left)}px`;
+        menu.style.top = `${Math.max(8, top)}px`;
+      });
+    });
+    $('context-copy').addEventListener('click', async () => {
+      if (!selectedContextMessage) return;
+      const content = selectedContextMessage.text;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) await navigator.clipboard.writeText(content);
+        else fallbackCopy(content);
+        showToast('Đã sao chép nội dung tin nhắn.', 'success');
+      } catch (_) {
+        try { fallbackCopy(content); showToast('Đã sao chép nội dung tin nhắn.', 'success'); }
+        catch (_) { showToast('Không thể sao chép tự động trên trình duyệt này.', 'error'); }
+      }
+      hideContextMenu();
+    });
+    $('context-reply').addEventListener('click', () => {
+      if (!selectedContextMessage) return;
+      replyTarget = selectedContextMessage;
+      $('reply-preview-name').textContent = `Đang trả lời ${selectedContextMessage.senderName}`;
+      $('reply-preview-text').textContent = selectedContextMessage.text;
+      $('reply-preview').classList.remove('hidden');
+      $('message-input').focus();
+      hideContextMenu();
+    });
+    function fallbackCopy(text) {
+      const area = document.createElement('textarea');
+      area.value = text; area.style.position = 'fixed'; area.style.opacity = '0'; area.style.left = '-9999px';
+      document.body.appendChild(area); area.select();
+      const ok = document.execCommand('copy'); area.remove();
+      if (!ok) throw new Error('copy failed');
+    }
+    function hideContextMenu() { $('message-context-menu').classList.add('hidden'); }
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('#message-context-menu')) hideContextMenu();
+    });
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') hideContextMenu(); });
+    $('cancel-reply').addEventListener('click', clearReply);
+    function clearReply() { replyTarget = null; $('reply-preview').classList.add('hidden'); }
+
+    $('mic-toggle').addEventListener('click', () => {
+      if (!localStream) return;
+      micMuted = !micMuted;
+      localStream.getAudioTracks().forEach((track) => { track.enabled = !micMuted; });
+      $('mic-toggle').classList.toggle('is-muted', micMuted);
+      $('mic-label').textContent = micMuted ? 'Bật mic' : 'Tắt mic';
+      $('mic-icon').outerHTML = (micMuted ? ICON_MIC_OFF : ICON_MIC).replace('svg', 'svg id="mic-icon"');
+      if (micMuted && usersData[myPeerId]) updateSpeakingStatus(myPeerId, false, true);
+      renderUserList();
+    });
+
+    $('leave-button').addEventListener('click', () => leaveRoom(false));
+
+    $('profile-trigger').addEventListener('click', openProfileModal);
+    $('close-profile-modal').addEventListener('click', closeProfileModal);
+    $('cancel-profile-modal').addEventListener('click', closeProfileModal);
+    $('profile-modal').addEventListener('click', (event) => { if (event.target === $('profile-modal')) closeProfileModal(); });
+    $('profile-name').addEventListener('input', () => { $('profile-preview-name').textContent = cleanName($('profile-name').value, false); paintAvatar($('profile-preview-avatar'), $('profile-preview-name').textContent, pendingAvatar || profile.avatar); });
+    $('avatar-file').addEventListener('change', async (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { showToast('Vui lòng chọn một tệp ảnh.', 'error'); return; }
+      try {
+        pendingAvatar = await compressImage(file);
+        paintAvatar($('profile-preview-avatar'), cleanName($('profile-name').value, false), pendingAvatar);
+      } catch (error) { console.error(error); showToast('Không đọc được ảnh này. Hãy thử một ảnh khác.', 'error'); }
+      event.target.value = '';
+    });
+    $('remove-avatar').addEventListener('click', () => {
+      pendingAvatar = '';
+      paintAvatar($('profile-preview-avatar'), cleanName($('profile-name').value, false), '');
+    });
+    $('profile-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const name = cleanName($('profile-name').value, true);
+      saveProfile({ name, avatar: pendingAvatar });
+      pendingAvatar = profile.avatar;
+      closeProfileModal();
+      if (myPeerId && authAccepted) updateCurrentProfileInRoom();
+      showToast('Đã lưu hồ sơ trên trình duyệt này.', 'success');
+    });
+
+    function openProfileModal() {
+      pendingAvatar = profile.avatar;
+      $('profile-name').value = profile.name;
+      paintAvatar($('profile-preview-avatar'), effectiveName(), pendingAvatar);
+      $('profile-preview-name').textContent = effectiveName();
+      $('profile-modal').classList.remove('hidden');
+      $('profile-name').focus();
+    }
+    function closeProfileModal() { $('profile-modal').classList.add('hidden'); }
+
+    function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('read image failed'));
+        reader.onload = () => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('decode image failed'));
+          img.onload = () => {
+            const maxSide = 256;
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(img.width * scale));
+            canvas.height = Math.max(1, Math.round(img.height * scale));
+            const context = canvas.getContext('2d');
+            if (!context) { reject(new Error('canvas unavailable')); return; }
+            context.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL('image/jpeg', .78));
+          };
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function updateCurrentProfileInRoom() {
+      myUsername = effectiveName(); myAvatar = profile.avatar;
+      if (usersData[myPeerId]) {
+        usersData[myPeerId].name = myUsername;
+        usersData[myPeerId].avatar = myAvatar;
+        renderUserList();
+      }
+      if (isHost) {
+        broadcastToClients({ type: 'member_updated', member: publicMember(usersData[myPeerId]) });
+      } else if (hostConnection && hostConnection.open) {
+        try { hostConnection.send({ type: 'profile_update', name: myUsername, avatar: myAvatar }); } catch (_) {}
+        // Cập nhật hiển thị của chính mình ngay, không chờ phản hồi từ chủ phòng.
+      }
+      $('top-profile-name').textContent = myUsername;
+      paintAvatar($('top-avatar'), myUsername, myAvatar);
+    }
+
+    function closeCallsForPeer(id) {
+      const call = mediaCalls[id];
+      if (call) {
+        delete mediaCalls[id];
+        try { call.close(); } catch (_) {}
+      }
+    }
+
+    async function resetToLogin() {
+      await stopMediaAndPeers();
+      $('room-screen').classList.add('hidden');
+      $('login-screen').classList.remove('hidden');
+      $('mic-toggle').disabled = true;
+      $('message-input').disabled = true;
+      $('send-button').disabled = true;
+      $('join-button').disabled = false;
+      $('join-button').querySelector('span').textContent = 'Vào phòng';
+      joining = false; authAccepted = false; isHost = false; micMuted = false;
+    }
+
+    async function leaveRoom(silent) {
+      if (leaving) return;
+      leaving = true;
+      clearTimeout(hostAttemptTimer);
+      hideContextMenu();
+      $('name-gate-modal').classList.add('hidden');
+      await stopMediaAndPeers();
+      Object.keys(usersData).forEach((id) => delete usersData[id]);
+      Object.keys(dataConnections).forEach((id) => delete dataConnections[id]);
+      Object.keys(mediaCalls).forEach((id) => delete mediaCalls[id]);
+      Object.keys(audioElements).forEach((id) => delete audioElements[id]);
+      Object.keys(audioMonitors).forEach((id) => delete audioMonitors[id]);
+      messageStore.clear(); messageHistory.length = 0;
+      $('messages').replaceChildren($('empty-chat'));
+      $('empty-chat').classList.remove('hidden');
+      $('user-list').replaceChildren();
+      $('member-count').textContent = '0';
+      $('room-screen').classList.add('hidden');
+      $('login-screen').classList.remove('hidden');
+      $('mic-toggle').disabled = true; $('message-input').disabled = true; $('send-button').disabled = true;
+      $('message-input').value = ''; clearReply();
+      setConnectionStatus('Đã rời phòng', 'offline');
+      roomPasswordHash = ''; hostId = ''; roomId = ''; myPeerId = ''; myUsername = effectiveName(); myAvatar = profile.avatar;
+      isHost = false; authAccepted = false; micMuted = false; hostAttemptHandled = false; joining = false;
+      $('join-button').disabled = false; $('join-button').querySelector('span').textContent = 'Vào phòng';
+      leaving = false;
+      if (!silent) showToast('Bạn đã rời phòng thoại.', 'success');
+    }
+
+    async function stopMediaAndPeers() {
+      try { if (hostConnection) hostConnection.close(); } catch (_) {}
+      hostConnection = null;
+      Object.values(mediaCalls).forEach((call) => { try { call.close(); } catch (_) {} });
+      Object.values(dataConnections).forEach((conn) => { try { conn.close(); } catch (_) {} });
+      Object.values(audioMonitors).forEach((monitor) => {
+        try { cancelAnimationFrame(monitor.raf); monitor.source.disconnect(); monitor.analyser.disconnect(); monitor.context.close(); } catch (_) {}
+      });
+      Object.values(audioElements).forEach((audio) => { try { audio.pause(); audio.srcObject = null; audio.remove(); } catch (_) {} });
+      try { if (peer && !peer.destroyed) peer.destroy(); } catch (_) {}
+      try { if (hostPeer && !hostPeer.destroyed) hostPeer.destroy(); } catch (_) {}
+      peer = null; hostPeer = null;
+      if (localStream) localStream.getTracks().forEach((track) => { try { track.stop(); } catch (_) {} });
+      localStream = null;
+    }
+
+    // Khởi tạo hiển thị hồ sơ và một vài tương tác bàn phím.
+    paintProfile();
+    window.addEventListener('beforeunload', () => {
+      try { if (localStream) localStream.getTracks().forEach((track) => track.stop()); } catch (_) {}
+      try { if (peer && !peer.destroyed) peer.destroy(); } catch (_) {}
+      try { if (hostPeer && !hostPeer.destroyed) hostPeer.destroy(); } catch (_) {}
+    });
+  </script>
 </body>
 </html>
